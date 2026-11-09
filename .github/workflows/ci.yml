@@ -1,0 +1,96 @@
+name: Reproducibility checks
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'reports/**'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'reports/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres:
+    name: Python 3.10 / PostgreSQL 17
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: prospects_test
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: prospects_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U prospects_test -d prospects_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URL: postgresql://prospects_test:ci-only-password@127.0.0.1:5432/prospects_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install exact dependencies
+        run: python -m pip install -r requirements.lock.txt
+      - name: Lint
+        run: python -m ruff check app tests scripts
+      - name: Backend and PostgreSQL tests
+        run: python -m pytest -q -rs --ignore=tests/test_ui.py --junitxml=reports/ci-postgres.xml
+      - name: Synthetic demo
+        run: python scripts/demo.py
+      - name: Save test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-results
+          path: reports/ci-postgres.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
+  windows:
+    name: Python 3.10 / Windows / Edge
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install exact dependencies
+        run: python -m pip install -r requirements.lock.txt
+      - name: Check Edge availability
+        run: python -c "from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(channel='msedge', headless=True); print(b.version); b.close(); p.stop()"
+      - name: Lint
+        run: python -m ruff check app tests scripts
+      - name: SQLite API and browser tests
+        run: python -m pytest -q -rs --ignore=tests/test_postgres.py --junitxml=reports/ci-windows.xml
+      - name: Synthetic demo
+        run: python scripts/demo.py
+      - name: Save test results and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-results
+          path: |
+            reports/ci-windows.xml
+            reports/ui-desktop.png
+            reports/ui-mobile.png
+          if-no-files-found: ignore
+          retention-days: 7
