@@ -29,6 +29,7 @@ class Settings:
     total_model_calls: int = 40
     search_queries: int = 3
     research_acts: int = 5
+    enable_tool_research: bool = False
 
     @property
     def yandex_ready(self):
@@ -48,6 +49,7 @@ class Settings:
             gigachat_scope=os.getenv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS"),
             gigachat_model=os.getenv("GIGACHAT_MODEL", "GigaChat-2-Pro"),
             parser_api_key=os.getenv("PARSER_API_KEY", ""),
+            enable_tool_research=os.getenv("ENABLE_TOOL_RESEARCH", "false").lower() == "true",
             database=path if path.is_absolute() else ROOT / path,
             api_key=os.getenv("YANDEX_API_KEY", "").strip(),
             folder_id=os.getenv("YANDEX_FOLDER_ID", "").strip(),
