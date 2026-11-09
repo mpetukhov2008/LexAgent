@@ -94,7 +94,8 @@ def test_429_retry_pagination_and_same_case_siblings_are_preserved(tmp_path):
     assert len(acts) == 2 and {a["instance"] for a in acts} == {"first", "appeal"}
     assert coverage["pagination_complete"] and coverage["fetched_pages"] == 2
     assert client.calls == len(requests) == 3
-    assert all("private-key" not in p.read_text() for p in tmp_path.glob("*.json"))
+    assert all("private-key" not in p.read_text(encoding="utf-8")
+               for p in tmp_path.glob("*.json"))
 
 
 def test_source_budget_survives_new_client_and_reserves_before_network(tmp_path):
