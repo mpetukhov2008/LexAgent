@@ -11,6 +11,7 @@ class Materials:
         with store.connect() as db:
             db.execute("CREATE TABLE IF NOT EXISTS domain_migrations (version INTEGER PRIMARY KEY)")
             db.execute("INSERT INTO domain_migrations(version) VALUES(1) ON CONFLICT DO NOTHING")
+            db.execute("INSERT INTO domain_migrations(version) VALUES(2) ON CONFLICT DO NOTHING")
             for statement in (
                 "CREATE TABLE IF NOT EXISTS case_registry ("
                 "id TEXT PRIMARY KEY, number TEXT NOT NULL, payload TEXT NOT NULL)",
@@ -30,6 +31,11 @@ class Materials:
                 "PRIMARY KEY(run_id,act_id))",
                 "CREATE TABLE IF NOT EXISTS report_records ("
                 "run_id TEXT PRIMARY KEY REFERENCES runs(id), payload TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS original_documents ("
+                "sha256 TEXT PRIMARY KEY, retrieved_at TEXT, payload TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS act_documents ("
+                "act_id TEXT PRIMARY KEY REFERENCES act_registry(id), "
+                "sha256 TEXT NOT NULL REFERENCES original_documents(sha256))",
             ):
                 db.execute(statement)
 
@@ -47,6 +53,15 @@ class Materials:
                 db.execute("INSERT INTO act_registry(id,case_key,payload) VALUES(?,?,?) "
                            "ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
                            (act["id"], act["case_key"], encode(act)))
+                if act.get("document_sha256"):
+                    db.execute("INSERT INTO original_documents(sha256,retrieved_at,payload) "
+                               "VALUES(?,?,?) ON CONFLICT(sha256) DO NOTHING",
+                               (act["document_sha256"], act.get("retrieved_at"), encode({
+                                   k: act[k] for k in ("text_origin", "extraction_quality",
+                                                      "page_quality", "original_retained")})))
+                    db.execute("INSERT INTO act_documents(act_id,sha256) VALUES(?,?) "
+                               "ON CONFLICT(act_id) DO UPDATE SET sha256=excluded.sha256",
+                               (act["id"], act["document_sha256"]))
             for evidence in search.get("evidence", []):
                 db.execute("INSERT INTO evidence_records(id,act_id,page,quote,payload) "
                            "VALUES(?,?,?,?,?) ON CONFLICT(id) DO NOTHING",
@@ -73,6 +88,9 @@ class Materials:
             ).fetchall()
             report = db.execute("SELECT payload FROM report_records WHERE run_id=?", (run_id,))
             report = report.fetchone()
-        return {"contract_version": "2.0", "evidence": [json.loads(e["payload"]) for e in evidence],
+        from app.contracts import CONTRACT_VERSION
+
+        return {"contract_version": CONTRACT_VERSION,
+                "evidence": [json.loads(e["payload"]) for e in evidence],
                 "comparisons": [json.loads(c["payload"]) for c in comparisons],
                 "report": json.loads(report["payload"]) if report else None}

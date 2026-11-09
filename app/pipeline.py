@@ -14,6 +14,7 @@ from app.agent import AgentError
 from app.agents.comparison import ComparisonAgent
 from app.agents.report import ReportAgent
 from app.contracts import (
+    CONTRACT_VERSION,
     Evidence,
     ResearchRequest,
     ResearchResponse,
@@ -23,8 +24,9 @@ from app.contracts import (
     registry,
 )
 from app.gigachat import GigaChatProvider
+from app.research_service import ResearchService
 from app.schemas import StrictModel
-from app.search_agent import SearchAgent
+from app.search_agent import SearchAgent, counterexample_query
 from app.sources import ParserClient
 
 
@@ -269,17 +271,11 @@ class SearchPipeline:
                 intake, query, payload["mode"] != "demo", emit, plan.get("queries"),
             )
             warnings.extend(w for w in source_warnings if w not in warnings)
-            for case in cases:
-                if not case["pages"]:
-                    try:
-                        emit("source_read", {"stage": "research",
-                                             "message": f"Получает текст акта {case['number']}"})
-                        case["pages"] = await self.source.read_act(case)
-                        if self.library:
-                            self.library.save(case)
-                    except AgentError as exc:
-                        case["read_error"] = str(exc)
-                        warnings.append(f"{case['number']}: {exc}")
+            cases = await ResearchService(self.source, self.library, self.settings, emit).prepare(
+                cases, coverage, online=payload["mode"] != "demo",
+            )
+            warnings.extend(f"{c['number']}: {c['read_error']}"
+                            for c in cases if c.get("read_error"))
             persist("coverage", coverage)
             persist("cases", cases)
         cases = state["cases"]
@@ -342,7 +338,8 @@ class SearchPipeline:
             if "external_research" not in state:
                 emit("stage_start", {"stage": "research", "message": "Исследователь читает акты"})
                 external = ResearchResponse.model_validate(await self.research_agent.research(
-                    ResearchRequest(intake=intake["fields"], acts=readable)
+                    ResearchRequest(intake=intake["fields"], acts=readable,
+                                    histories=state["coverage"].get("case_histories", {}))
                 ))
                 persist("external_research", external.model_dump())
                 emit("stage_done", {"stage": "research", "message": "Исследование сохранено"})
@@ -354,20 +351,35 @@ class SearchPipeline:
             selected_evidence, unresolved = resolve_evidence(research["evidence"], catalog)
         evidence, rejected = verify_evidence(selected_evidence, readable)
         evidence, normalized_rejected = normalize_evidence(evidence, readable)
+        extra, extra_rejected = normalize_evidence(state.get("additional_evidence", []), readable)
+        known_evidence = {e["id"] for e in evidence}
+        evidence.extend(e for e in extra if e["id"] not in known_evidence)
+        normalized_rejected += extra_rejected
         rejected += normalized_rejected
         rejected += unresolved
         if rejected:
             warnings.append(f"Отброшены неподтверждённые цитаты: {rejected}")
         case_records, judicial_acts = registry(cases)
-        state.update(contract_version="2.0", case_records=case_records, judicial_acts=judicial_acts)
+        state.update(contract_version=CONTRACT_VERSION, case_records=case_records,
+                     judicial_acts=judicial_acts)
 
         async def additional_research(act_id, page, question):
             if not self.research_agent:
                 return []
+            act = next((c for c in cases if c["id"] == act_id), None)
+            if act is None:
+                return []
+            if not act.get("pages"):
+                await ResearchService(self.source, self.library, self.settings, emit).hydrate(act)
+                if not act.get("pages"):
+                    return []
+                if act not in readable:
+                    readable.append(act)
             result = ResearchResponse.model_validate(await self.research_agent.research(
                 ResearchRequest(
-                    intake=intake["fields"], acts=[c for c in readable if c["id"] == act_id],
+                    intake=intake["fields"], acts=[act],
                     request=f"Страница {page}. {question}",
+                    histories=state["coverage"].get("case_histories", {}),
                 )
             ))
             added, refused = normalize_evidence(result.evidence, readable)
@@ -375,7 +387,71 @@ class SearchPipeline:
                 warnings.append("Дополнительный исследователь вернул неподтверждённые цитаты")
             known = {e["id"] for e in evidence}
             evidence.extend(e for e in added if e["id"] not in known)
+            persist("cases", cases)
+            persist("additional_evidence", evidence)
             return added
+
+        def refresh_materials():
+            context_cases[:] = [
+                {**{k: c[k] for k in ("id", "number", "court", "appeal_status")},
+                 "fragments": [dict(fragment_id=k, **v)
+                               for k, v in evidence_catalog([c]).items()]}
+                for c in readable
+            ]
+            records, documents = registry(cases)
+            state.update(case_records=records, judicial_acts=documents)
+            persist("cases", cases)
+            persist("additional_evidence", evidence)
+
+        async def critic_research(args):
+            actions = state.setdefault("critic_actions", {})
+            if actions.get("research", 0) >= 2:
+                return {"available": False, "limitation": "Лимит повторного исследования"}
+            actions["research"] = actions.get("research", 0) + 1
+            if checkpoint:
+                checkpoint(state)
+            added = await additional_research(args["act_id"], args["page"], args["question"])
+            refresh_materials()
+            return {"evidence": added, "acts": state["judicial_acts"]}
+
+        async def critic_counterexamples(args):
+            actions = state.setdefault("critic_actions", {})
+            if actions.get("search", 0) >= 1 or not online:
+                return {"available": False, "limitation": "Лимит поиска контрпримеров"}
+            actions["search"] = 1
+            if checkpoint:
+                checkpoint(state)
+            emit("revision_requested", {"stage": "search",
+                                         "message": "Критик запросил противоположную практику"})
+            candidates, counter_coverage, notes = await SearchAgent(
+                self.source, self.library, max_queries=1, max_acts=3,
+            ).run(intake, counterexample_query(intake, args["query"]), True, emit)
+            candidates = await ResearchService(
+                self.source, self.library, self.settings, emit,
+            ).prepare(candidates, counter_coverage)
+            state["coverage"]["counterexample_search"] = counter_coverage
+            warnings.extend(notes)
+            known_acts = {c["id"] for c in cases}
+            added_acts = [c for c in candidates if c["id"] not in known_acts]
+            cases.extend(added_acts)
+            readable.extend(c for c in added_acts if c.get("pages"))
+            added = []
+            if self.research_agent:
+                for act in added_acts[:3]:
+                    if act.get("pages"):
+                        added.extend(await additional_research(
+                            act["id"], 1, "Проверить противоположную практику и значимые отличия",
+                        ))
+            refresh_materials()
+            return {"evidence": added, "acts": registry(added_acts)[1],
+                    "coverage": counter_coverage,
+                    "limitation": "Кандидаты требуют проверки; отсутствие контрпримеров неизвестно"}
+
+        from app.agents.semantic_critic import SemanticCritic
+
+        if isinstance(self.critic_agent, SemanticCritic):
+            self.critic_agent.counterexamples = critic_counterexamples
+            self.critic_agent.research_page = critic_research
         if "comparison" not in state:
             emit("stage_start", {"stage": "comparison", "message": "Сопоставление материалов"})
             ranking = await ComparisonAgent(self.provider).run(
@@ -423,6 +499,7 @@ class SearchPipeline:
                     comparisons=[ComparisonResult.model_validate(c) for c in comparisons],
                     evidence=[Evidence.model_validate(e) for e in evidence],
                     coverage=state["coverage"],
+                    acts=registry(cases)[1],
                 )))
                 known = {e["id"] for e in evidence}
                 if any(identity not in known for issue in review.issues
@@ -455,6 +532,7 @@ class SearchPipeline:
                             comparisons=[ComparisonResult.model_validate(c) for c in comparisons],
                             evidence=[Evidence.model_validate(e) for e in evidence],
                             coverage=state["coverage"],
+                            acts=registry(cases)[1],
                         )
                     ))
                     known = {e["id"] for e in evidence}
@@ -503,10 +581,11 @@ class SearchPipeline:
             report=report,
             critique=critique,
             limits=[
-                "Несколько запросов, объединение и ранжирование; первая страница каждого запроса.",
-                "Модель читает первые 2 и последние 2 страницы длинного акта, "
-                "до 5000 символов на страницу; середина может быть пропущена.",
-                "История обжалования и полнота противоположной практики не проверены.",
+                "Постраничная выдача ограничена бюджетом; полнота внешней базы неизвестна.",
+                ("Исследователь получает все доступные страницы; чтение ограничено бюджетом."
+                 if self.research_agent else
+                 "Базовый путь: первые 2 и последние 2 страницы; середина может отсутствовать."),
+                "История — снимок опубликованных источников, не доказательство окончательности.",
                 "Текст отчёта требует проверки юристом; наличие цитаты не "
                 "доказывает смысловую связь.",
             ],

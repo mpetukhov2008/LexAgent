@@ -35,6 +35,7 @@ def test_middle_page_and_linked_instances():
     assert item.page == 7 and item.act_id == "a" and item.assertion_type == "party_argument"
     assert not result.history_complete
     assert any("истории" in x for x in result.warnings)
+    assert any("акты без доступного текста" in x for x in result.warnings)
     assert [e[1]["tool"] for e in events] == [
         "list_case_acts", "get_case_history", "read_act_page", "record_evidence", "finish_research"]
 
@@ -52,11 +53,10 @@ def test_card_document_and_text_are_separate_cache_and_scan_limit(tmp_path, monk
         return httpx.Response(200, json={"done": 1,
                                         "pdfContent": base64.b64encode(b"%PDF-test").decode()})
 
-    monkeypatch.setattr("app.sources.extract_pages", lambda raw: [{"page": 1, "text": "Текст"}])
 
     async def run():
         client = ParserClient(Settings(parser_api_key="dummy"), httpx.MockTransport(handler),
-                              tmp_path)
+                              tmp_path, extractor=lambda raw: [{"page": 1, "text": "Текст"}])
         card = await client.get_case_card("А70-1/2026")
         acts = client.list_case_acts(card)
         assert len(acts) == 1
@@ -67,7 +67,7 @@ def test_card_document_and_text_are_separate_cache_and_scan_limit(tmp_path, monk
         assert acts[0]["text_origin"] == "pdf_text"
         await client.read_act(acts[0])
         assert client.calls == 2
-        monkeypatch.setattr("app.sources.extract_pages", lambda raw: [{"page": 1, "text": ""}])
+        client.extractor = lambda raw: [{"page": 1, "text": ""}]
         with pytest.raises(AgentError, match="OCR"):
             await client.read_act(acts[0])
 

@@ -4,8 +4,16 @@ Set-Location -LiteralPath $PSScriptRoot
 if (-not (Test-Path -LiteralPath '.venv/Scripts/python.exe')) {
     python -m venv .venv
     if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать окружение Python' }
+}
+$taskLockHash = (Get-FileHash -LiteralPath 'requirements.lock.txt' -Algorithm SHA256).Hash
+$taskLockMarker = '.venv/lexagent-requirements.sha256'
+$taskInstalledHash = if (Test-Path -LiteralPath $taskLockMarker) {
+    (Get-Content -LiteralPath $taskLockMarker -Raw).Trim()
+} else { '' }
+if ($taskInstalledHash -ne $taskLockHash) {
     & .venv/Scripts/python.exe -m pip install -r requirements.lock.txt
-    if ($LASTEXITCODE -ne 0) { throw 'Не удалось установить зависимости' }
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось обновить зависимости проекта' }
+    Set-Content -LiteralPath $taskLockMarker -Value $taskLockHash -NoNewline -Encoding ascii
 }
 if (Test-Path -LiteralPath 'data/pg/PG_VERSION') {
     $pgBinPath = if ($env:PG_BIN) { $env:PG_BIN } else { 'C:\Program Files\PostgreSQL\17\bin' }

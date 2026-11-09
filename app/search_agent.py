@@ -40,6 +40,16 @@ def suggested_queries(intake, preferred=""):
     return list(dict.fromkeys(q[:250] for q in queries if len(q) >= 3))[:4]
 
 
+def counterexample_query(intake, proposed):
+    """Only topical vocabulary crosses this new model-to-source boundary."""
+    topics = [("отказ", "отказ"), ("возраж", "возражения"),
+              ("компенсац", "компенсация"), ("автомат", "автоматическое размещение"),
+              ("общ", "общая карточка"), ("доказ", "доказательства"),
+              ("автор", "авторство"), ("прав", "исключительные права")]
+    extra = [label for stem, label in topics if stem in proposed.casefold()][:3]
+    return suggested_queries(intake)[0] + " " + " ".join(extra or ["отказ"])
+
+
 def fuse_candidates(batches, queries, limit=6):
     """Reciprocal-rank fusion plus explainable textual matches, never win probability."""
     merged = {}
@@ -119,6 +129,12 @@ class SearchAgent:
                     rows, coverage = await self.source.search(query)
                     batches.append(("external", query, rows))
                     entry.update(remote_count=len(rows), coverage=coverage)
+                    if coverage.get("partial_failure"):
+                        remote_failed = True
+                        warnings.append("Часть страниц внешней выдачи не получена; охват ограничен")
+                    elif (coverage.get("pages") and
+                          not coverage.get("pagination_complete", True)):
+                        warnings.append("Выдача источника ограничена числом загруженных страниц")
                     remote_ok += 1
                 except AgentError as exc:
                     remote_failed = True

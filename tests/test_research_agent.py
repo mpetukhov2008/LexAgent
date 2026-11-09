@@ -149,12 +149,15 @@ def test_pipeline_research_hook_checkpoints_and_resume_without_repeating_researc
     first, second = asyncio.run(run())
     assert first["evidence"][0]["id"] == second["evidence"][0]["id"] == eid
     assert "external_research" in state and any("external_research" in x for x in saved)
+    assert any("все доступные страницы" in limit for limit in first["limits"])
     assert len([e for e in events if e[0] == "stage_tool" and
                 e[1].get("tool") == "record_evidence"]) == 1
 
 
-def test_flag_is_opt_in(monkeypatch):
+def test_full_research_defaults_on_and_can_be_disabled(monkeypatch):
     monkeypatch.delenv("ENABLE_TOOL_RESEARCH", raising=False)
+    assert Settings.from_env().enable_tool_research
+    monkeypatch.setenv("ENABLE_TOOL_RESEARCH", "false")
     assert not Settings.from_env().enable_tool_research
     monkeypatch.setenv("ENABLE_TOOL_RESEARCH", "true")
     assert Settings.from_env().enable_tool_research

@@ -7,7 +7,7 @@ function cleanReportText(value) {
 function sourceLink(label, value, page) {
   try {
     const url = new URL(value);
-    if (url.protocol !== 'https:' || url.username || url.password || !['kad.arbitr.ru', 'ras.arbitr.ru'].includes(url.hostname)) return null;
+    if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443') || !['kad.arbitr.ru', 'ras.arbitr.ru'].includes(url.hostname)) return null;
     if (page) url.hash = 'page=' + page;
     const link = el('a', label, 'secondary');
     link.href = url.href;
@@ -52,11 +52,12 @@ window.renderSearch = function renderSearch(container, search) {
   section.append(el('p', localOnly ? 'Локальная библиотека · внешний поиск не выполнялся' : 'Поиск по доступным источникам · охват ограничен', 'run-meta'));
   for (const warning of search.warnings || []) section.append(el('p', warning, 'notice warn'));
   if (search.report) section.append(el('p', cleanReportText(search.report.summary), 'notice'));
-  if (coverage.queries?.length) {
+  const allQueries = [...(coverage.queries || []), ...(coverage.counterexample_search?.queries || [])];
+  if (allQueries.length) {
     const log = el('details', undefined, 'query-log');
-    log.append(el('summary', 'Как искали · запросов: ' + coverage.queries.length));
+    log.append(el('summary', 'Как искали · запросов: ' + allQueries.length));
     const list = el('ol');
-    for (const q of coverage.queries) list.append(el('li', q.query + ' — ' + (q.local_count || 0) + ' локальных, ' + (q.remote_count || 0) + ' внешних' + (q.error ? ' · ' + q.error : '')));
+    for (const q of allQueries) list.append(el('li', q.query + ' — ' + (q.local_count || 0) + ' локальных, ' + (q.remote_count || 0) + ' внешних' + (q.error ? ' · ' + q.error : '')));
     log.append(list, el('p', 'Кандидатов: ' + (coverage.candidate_acts || 0) + ' · Отобрано актов: ' + acts.length + '. Ранжирование не является оценкой вероятности выигрыша.', 'hint'));
     section.append(log);
   }
@@ -113,7 +114,7 @@ window.renderSearch = function renderSearch(container, search) {
       card.append(head);
       for (const act of group) {
         const body = el('div', undefined, group.length > 1 ? 'case-act' : '');
-        body.append(el('p', [act.court, act.date, act.kind].filter(Boolean).join(' · '), 'run-meta'));
+        body.append(el('p', [act.court, act.date && (act.date_kind === 'source_registration_or_publication' ? act.date + ' (дата источника)' : act.date), act.kind].filter(Boolean).join(' · '), 'run-meta'));
         if (act.provenance === 'user_import_unverified') body.append(el('p', 'Загружено пользователем · соответствие оригиналу не проверено', 'notice warn'));
         const comparison = (search.comparisons || []).find(c => c.case_id === act.id);
         if (comparison) {
@@ -132,12 +133,31 @@ window.renderSearch = function renderSearch(container, search) {
         }
         body.append(el('p', 'История обжалования: ' + (act.appeal_status || 'Не проверена'), 'hint'));
         if (act.read_error) body.append(el('p', act.read_error, 'notice warn'));
+        if (act.extraction_quality?.ocr_used) body.append(el('p', 'Использован OCR · распознанный текст требует сверки с оригиналом', 'notice warn'));
+        if (act.extraction_quality?.empty_pages?.length) body.append(el('p', 'Страницы без доступного текста: ' + act.extraction_quality.empty_pages.join(', '), 'notice warn'));
+        if (act.history && act === group[0]) {
+          const caseHistory = coverage.case_histories?.[act.number] || act.history;
+          const history = el('details');
+          history.append(el('summary', 'История дела · опубликованных актов: ' + (caseHistory.act_ids?.length || group.length)));
+          history.append(el('p', caseHistory.history_complete ? 'Снимок доступных источников получен. Юридическая окончательность не подтверждена.' : 'Полнота опубликованной цепочки не подтверждена.', 'hint'));
+          for (const relation of caseHistory.links || []) history.append(el('p', relation.effect || 'Связанные акты последовательных инстанций'));
+          body.append(history);
+        }
         for (const item of evidence.filter(e => (e.act_id || e.case_id) === act.id)) {
           const detail = el('details', undefined, 'evidence-item'); detail.id = 'evidence-' + item.id;
           const summary = el('summary', 'Цитата · страница ' + item.page); summary.tabIndex = 0;
           detail.append(summary, el('blockquote', item.quote), el('p', item.observation));
+          const categories = {claims: 'требования', objections: 'возражения', evidence: 'доказательства', facts: 'обстоятельства', reasoning: 'мотивы', outcome: 'результат', unknown: 'раздел не определён'};
+          const assertions = {party_argument: 'довод стороны', court_finding: 'возможный вывод суда', unknown: 'тип не определён'};
+          detail.append(el('p', 'Предварительная разметка: ' + (categories[item.category] || categories.unknown) + ' · ' + (assertions[item.assertion_type] || assertions.unknown) + '. Требуется сверка.', 'hint'));
+          if ((act.page_quality || []).some(q => q.page === item.page && q.origin === 'ocr')) detail.append(el('p', 'Текст этой страницы получен через OCR.', 'notice warn'));
           const original = sourceLink('Открыть страницу оригинала ↗', act.file_url, item.page);
           if (original) detail.append(original);
+          if (act.original_retained && /^[a-f0-9]{64}$/.test(act.document_sha256 || '')) {
+            const saved = el('a', 'Сохранённый оригинал · страница ' + item.page, 'secondary');
+            saved.href = '/api/documents/' + act.document_sha256 + '/original#page=' + item.page;
+            saved.target = '_blank'; saved.rel = 'noopener noreferrer'; detail.append(saved);
+          }
           body.append(detail);
         }
         for (const [label, url] of [['Карточка дела ↗', act.case_url], ['Судебный акт ↗', act.file_url]]) {

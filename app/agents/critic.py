@@ -4,12 +4,13 @@ import hashlib
 import re
 
 from app.agent import AgentError
-from app.contracts import CONTRACT_VERSION, ReviewIssue, ReviewRequest, ReviewResult
+from app.contracts import SUPPORTED_CONTRACT_VERSIONS, ReviewIssue, ReviewRequest, ReviewResult
 
 ISSUE_REASONS = frozenset({
     "history_unknown", "source_failed", "no_evidence", "duplicate_evidence",
     "unverified_evidence", "missing_reference", "cross_act_reference",
     "unsupported_finding", "unsupported_comparison", "party_as_court", "review_truncated",
+    "document_case_mismatch",
 })
 # This narrow textual rule flags an explicit attribution; it is not a legal classifier.
 COURT_ATTRIBUTION = re.compile(
@@ -30,7 +31,7 @@ class CriticAgent:
 
     async def review(self, request: ReviewRequest) -> ReviewResult:
         request = ReviewRequest.model_validate(request)
-        if request.contract_version != CONTRACT_VERSION:
+        if request.contract_version not in SUPPORTED_CONTRACT_VERSIONS:
             raise AgentError("Критик: неподдерживаемая версия контракта")
         if len(request.comparisons) > 10 or len(request.evidence) > 100:
             raise AgentError("Критик: превышен лимит материалов")
@@ -56,6 +57,11 @@ class CriticAgent:
                 "не подтверждена.", blocking=False)
         if not request.evidence:
             add("no_evidence", "research", "Для сравнения не переданы доказательства.")
+        for act in request.acts:
+            if act.extraction_quality.get("case_number_status") == "mismatch":
+                add("document_case_mismatch", "research",
+                    "Номер дела не подтверждён текстом PDF; в документе найдены другие номера.",
+                    [e.id for e in request.evidence if e.act_id == act.id], scope=act.id)
 
         by_id, duplicates = {}, set()
         for evidence in request.evidence:
