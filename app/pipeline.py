@@ -272,6 +272,8 @@ class SearchPipeline:
             for case in cases:
                 if not case["pages"]:
                     try:
+                        emit("source_read", {"stage": "research",
+                                             "message": f"Получает текст акта {case['number']}"})
                         case["pages"] = await self.source.read_act(case)
                         if self.library:
                             self.library.save(case)
@@ -338,10 +340,12 @@ class SearchPipeline:
         )
         if self.research_agent:
             if "external_research" not in state:
+                emit("stage_start", {"stage": "research", "message": "Исследователь читает акты"})
                 external = ResearchResponse.model_validate(await self.research_agent.research(
                     ResearchRequest(intake=intake["fields"], acts=readable)
                 ))
                 persist("external_research", external.model_dump())
+                emit("stage_done", {"stage": "research", "message": "Исследование сохранено"})
             external = ResearchResponse.model_validate(state["external_research"])
             selected_evidence = [e.model_dump() for e in external.evidence]
             warnings.extend(external.warnings)
@@ -413,6 +417,7 @@ class SearchPipeline:
             from app.contracts import ComparisonResult
 
             if "external_review" not in state:
+                emit("stage_start", {"stage": "critique", "message": "Критик проверяет выводы"})
                 review = ReviewResult.model_validate(await self.critic_agent.review(ReviewRequest(
                     intake=intake["fields"],
                     comparisons=[ComparisonResult.model_validate(c) for c in comparisons],
@@ -424,6 +429,7 @@ class SearchPipeline:
                        for identity in issue.evidence_ids):
                     raise AgentError("Критик вернул ссылку на неизвестное доказательство")
                 persist("external_review", review.model_dump())
+                emit("stage_done", {"stage": "critique", "message": "Проверка критика сохранена"})
             review = ReviewResult.model_validate(state["external_review"])
             critique = review.model_dump()
             critique["concerns"] = review.concerns + [issue.message for issue in review.issues]
@@ -441,6 +447,8 @@ class SearchPipeline:
                     persist("comparison_revision", revised)
                 comparisons = state["comparison_revision"]["comparisons"]
                 if "external_review_final" not in state:
+                    emit("stage_start", {"stage": "critique",
+                                         "message": "Критик повторно проверяет исправления"})
                     final_review = ReviewResult.model_validate(await self.critic_agent.review(
                         ReviewRequest(
                             intake=intake["fields"],
@@ -455,6 +463,8 @@ class SearchPipeline:
                         raise AgentError("Критик вернул неизвестное доказательство "
                                          "после исправления")
                     persist("external_review_final", final_review.model_dump())
+                    emit("stage_done", {"stage": "critique",
+                                        "message": "Повторная проверка завершена"})
                 review = ReviewResult.model_validate(state["external_review_final"])
                 critique = review.model_dump()
                 critique["concerns"] = review.concerns + [issue.message for issue in review.issues]

@@ -53,7 +53,29 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             errors = []
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(base)
+            assert page.locator("html").get_attribute("data-theme") == "dark"
+            assert page.locator("#welcome-screen").is_visible()
+            assert page.locator(".welcome-brand").inner_text().strip().endswith("ДОВОД")
+            assert page.locator(".city-skyline").get_attribute("src").endswith("moscow-city.svg")
+            assert page.locator(".welcome-footer .support-link").get_attribute("href") == (
+                "https://t.me/m_petukhov_2008"
+            )
+            page.screenshot(path=str(ROOT / "reports/ui-welcome.jpg"), type="jpeg", quality=70)
+            page.locator("#welcome-theme-toggle").click()
+            assert page.locator("html").get_attribute("data-theme") == "light"
+            page.reload()
+            assert page.locator("html").get_attribute("data-theme") == "light"
+            page.locator("#welcome-theme-toggle").click()
+            page.locator("#enter-workspace").click()
+            assert page.locator("#app-shell").is_visible()
+            assert page.locator("#welcome-screen").is_hidden()
+            page.locator("#agent-steps [data-stage='search']").click()
+            assert "запросы" in page.locator("#agent-description").inner_text()
+            assert page.locator("#active-agent").inner_text() == "Шесть агентов. Одна задача."
             page.screenshot(path=str(ROOT / "reports/ui-home.jpg"), type="jpeg", quality=65)
+            page.locator("#theme-toggle").click()
+            page.screenshot(path=str(ROOT / "reports/ui-light.jpg"), type="jpeg", quality=65)
+            page.locator("#theme-toggle").click()
             page.get_by_text(
                 "Библиотека судебных актов · добавить текст из источника", exact=True
             ).click()
@@ -112,6 +134,41 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             assert page.locator("#settings-details").get_attribute("open") is not None
             page.locator("#mode").select_option("gigachat")
             assert page.locator("#consent-wrap").is_visible()
+            # Explicitly synthetic event stream checks live progress without paid external APIs.
+            fixture = {**exported["run"], "id": "progress-ui-case", "status": "running",
+                       "result": None, "created_at": time.time(), "updated_at": time.time()}
+            activity = [{"kind": "stage_done", "created_at": time.time(),
+                         "detail": {"stage": "intake"}},
+                        {"kind": "stage_done", "created_at": time.time(),
+                         "detail": {"stage": "search"}},
+                        {"kind": "stage_start", "created_at": time.time(),
+                         "detail": {"stage": "research", "message": "Учебная проверка этапа"}}]
+            page.route("**/api/runs/progress-ui-case", lambda route: route.fulfill(json=fixture))
+            page.route("**/api/runs/progress-ui-case/events",
+                       lambda route: route.fulfill(json=activity))
+            page.goto(base + "/#progress-ui-case")
+            page.get_by_role("heading", name="Исследователь дела", exact=True).wait_for()
+            assert page.locator("#agent-steps [data-stage='research']").get_attribute(
+                "aria-current"
+            ) == "step"
+            assert page.locator("#completed-stages").inner_text() == "Завершено этапов: 2 из 6"
+            page.set_viewport_size({"width": 1440, "height": 1000})
+            page.locator("#research-progress").scroll_into_view_if_needed()
+            page.screenshot(path=str(ROOT / "reports/ui-processing.jpg"), type="jpeg", quality=70)
+            fixture["status"] = "needs_clarification"
+            fixture["updated_at"] += 1
+            fixture["result"] = {**result, "questions": [
+                {"field": "rights", "question": "Уточните права"}],
+                                 "ready_for_search": False, "search": None}
+            page.get_by_role("heading", name="Нужно ваше уточнение", exact=True).wait_for()
+            assert page.locator("#agent-steps [data-stage='intake']").get_attribute(
+                "data-state"
+            ) == "attention"
+            page.emulate_media(reduced_motion="reduce")
+            page.locator("#theme-toggle").click()
+            assert page.locator("#theme-toggle").evaluate(
+                "node => getComputedStyle(node).animationName"
+            ) == "none"
             assert not errors
             browser.close()
     finally:

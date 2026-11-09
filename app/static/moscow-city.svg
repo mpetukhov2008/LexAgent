@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" fill="none">
+  <title>Стилизованный силуэт небоскрёбов Москва-Сити</title>
+  <defs>
+    <linearGradient id="glass" x1="600" y1="80" x2="600" y2="530" gradientUnits="userSpaceOnUse"><stop stop-color="#739cff" stop-opacity=".2"/><stop offset="1" stop-color="#79a9ed" stop-opacity=".025"/></linearGradient>
+    <linearGradient id="line" x1="50" y1="250" x2="1150" y2="450" gradientUnits="userSpaceOnUse"><stop stop-color="#5c86c9" stop-opacity=".25"/><stop offset=".45" stop-color="#99c1ff"/><stop offset="1" stop-color="#6f9cd2" stop-opacity=".3"/></linearGradient>
+    <pattern id="windows" width="17" height="18" patternUnits="userSpaceOnUse"><path d="M2 0v12M0 15h12" stroke="#8bb6f5" stroke-width=".7" opacity=".27"/></pattern>
+  </defs>
+  <g fill="url(#glass)" stroke="url(#line)" stroke-width="2">
+    <path d="M45 520V424h52v-71h49v167M150 520V310h62v-34h44v244"/>
+    <path d="M235 520V250l70-40 20 20v290z"/>
+    <path d="M270 228l28-85 12 15 15 72M298 143v-28" stroke="#caaa68"/>
+    <path d="M330 520V322l30-15 48 6v207z"/>
+    <path d="M401 520V345c-11-41-22-76-12-106 11-30 44-50 54-85 23 37 42 66 40 100-2 33-22 68-13 105l15 161z"/>
+    <path d="M410 516c-14-50-6-89 11-120 22-40 43-77 28-114-10-26-37-50-34-80M464 517c-1-46-26-75-38-101-17-37-4-70 13-101 18-32 16-60 1-94" opacity=".5"/>
+    <path d="M491 520V213l62-25 9 332zM553 188l-3-49M550 139l-5 54"/>
+    <path d="M569 520V152l78-29 25 397zM647 123V70l-9 56"/>
+    <path d="M680 520V230l51-28 16 318zM753 520V179l64-26 13 367z"/>
+    <path d="M843 520V320h31V240h41v280zM915 520V276h27V207h47v313z"/>
+    <path d="M999 520V305l52-12 28 227zM1085 520V387h54v133"/>
+  </g>
+  <g stroke="#7fabe8" stroke-width="1" opacity=".35">
+    <path d="M247 253l64-32M247 271l65-32M247 291l67-32M247 311l67-32M247 331l67-32M247 351l67-32M247 371l67-32M247 391l67-32M247 411l67-32M247 431l67-32M247 451l67-32M247 471l67-32M247 491l67-32"/>
+    <path d="M506 220v294M521 214v300M538 208v306M588 155l10 360M607 147l10 368M627 140l10 375M647 155l14 360M693 232l14 282M712 222l13 292M767 186l13 328M787 179l13 335M806 171l13 343"/>
+    <path d="M569 184l78-28M571 209l78-26M573 235l78-24M575 262l77-22M577 289l77-20M579 316l77-18M581 344l77-16M583 372l77-14M585 400l77-12M587 428l77-10M589 456l77-8M591 484l77-6"/>
+  </g>
+  <g fill="url(#windows)" opacity=".8"><path d="M843 320h31V240h41v280h-72zM915 276h27V207h47v313h-74zM150 310h62v-34h44v244H150zM330 322l30-15 48 6v207h-78z"/></g>
+  <path d="M25 523h1150" stroke="url(#line)" stroke-width="1.5"/>
+  <path d="M75 547h1050M200 565h800M390 581h410" stroke="#7298c3" opacity=".17"/>
+  <g fill="#bad9ff"><circle cx="335" cy="140" r="2"/><circle cx="899" cy="126" r="1.7"/><circle cx="153" cy="225" r="1.5"/><circle cx="1015" cy="210" r="1.5"/><circle cx="750" cy="61" r="1.5"/></g>
+</svg>

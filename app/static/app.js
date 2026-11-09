@@ -137,7 +137,7 @@ function render(run) {
   if (run.error) box.append(el('p', run.error, 'notice fail'));
   if (['queued', 'running'].includes(run.status)) {
     const p = el('p', undefined, 'notice');
-    p.append(el('span', undefined, 'spinner'), document.createTextNode('Агент изучает источники. Можно оставить страницу открытой.'));
+    p.append(el('span', undefined, 'spinner'), document.createTextNode('Исследование выполняется. Текущий агент и его действия показаны в панели этапов выше.'));
     box.append(p);
     return;
   }
@@ -270,15 +270,7 @@ async function refreshRun() {
     render(run);
     lastRendered = signature;
   }
-  const stageNames = ['intake', 'search', 'research', 'comparison', 'critique', 'report'];
-  const activeStage = [...events].reverse().find(event => stageNames.includes(event.detail.stage))?.detail.stage || 'intake';
-  const activeIndex = stageNames.indexOf(activeStage);
-  document.querySelectorAll('.pipeline>span').forEach((node, index) => {
-    node.classList.toggle('current', index === activeIndex);
-    node.classList.toggle('done', index < activeIndex);
-    if (index === activeIndex) node.setAttribute('aria-current', 'step');
-    else node.removeAttribute('aria-current');
-  });
+  window.updateResearchProgress?.(run, events);
   $('trace').replaceChildren();
   for (const event of events) {
     const li = el('li');
@@ -290,6 +282,9 @@ async function refreshRun() {
   else await history();
 }
 async function selectRun(id) {
+  window.openDovodWorkspace?.();
+  document.body.classList.remove('history-open');
+  $('menu-toggle').setAttribute('aria-expanded', 'false');
   clearTimeout(timer);
   currentId = id;
   lastRendered = '';
@@ -362,6 +357,8 @@ $('new-run').onclick = () => {
   $('trace-wrap').hidden = true;
   $('run-actions').hidden = true;
   $('run-status').textContent = 'ОЖИДАЕТ ВВОДА';
+  document.querySelector('.output-panel').setAttribute('aria-busy', 'false');
+  window.updateResearchProgress?.(null, []);
   clearError();
   modeNote();
   updateCounter();
@@ -404,7 +401,8 @@ for (const action of ['cancel', 'resume']) $(action).onclick = async () => {
 };
 window.addEventListener('hashchange', () => {
   const id = location.hash.slice(1);
-  if (id && id !== currentId) selectRun(id);
+  if (id === 'welcome') window.openDovodWelcome?.();
+  else if (id && id !== currentId) selectRun(id);
 });
 $('add-document').onclick = () => {
   try {
@@ -444,7 +442,7 @@ for (const button of document.querySelectorAll('[data-sample]')) button.onclick 
     config = await api('/api/config');
     modeNote();
     await history();
-    if (location.hash) await selectRun(location.hash.slice(1));
+    if (location.hash && location.hash !== '#welcome') await selectRun(location.hash.slice(1));
   } catch (e) {
     showError(e);
   }
