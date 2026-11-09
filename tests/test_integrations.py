@@ -283,7 +283,8 @@ def test_pipeline_preserves_source_failure(tmp_path):
         )
         assert result["status"] == "partial"
         assert result["coverage"]["remote_failed"] is True
-        assert result["warnings"] == ["Источник недоступен"]
+        assert "Источник недоступен" in result["warnings"]
+        assert any("Alice AI" in warning for warning in result["warnings"])
 
     asyncio.run(run())
 
