@@ -1,65 +1,75 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Перспектива дела · Разбор ситуации</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#172824">
+  <meta name="description" content="Рабочее пространство для исследования судебной практики по спорам о контенте маркетплейсов.">
+  <title>LexAgent — Перспектива дела</title>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/app.js" defer></script>
   <script src="/static/search.js" defer></script>
 </head>
 <body>
-  <aside>
-    <div class="brand"><span class="brand-icon">П</span><span>Перспектива<br><b>дела</b></span></div>
-    <div class="side-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
-    <button id="new-run" class="nav active">＋ Новый разбор</button>
-    <div class="side-label">ПОСЛЕДНИЕ ЗАПУСКИ</div>
-    <nav id="history" aria-label="История запусков"></nav>
-    <div class="side-footer">Арбитражные споры<br>Контент маркетплейсов<br><span>Участник 1 · версия 0.3</span></div>
+  <a class="skip-link" href="#workspace">К рабочей области</a>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="LexAgent — начало">
+      <span class="brand-icon" aria-hidden="true">L<span>↗</span></span>
+      <span class="brand-word">LexAgent<small>ПЕРСПЕКТИВА ДЕЛА</small></span>
+    </a>
+    <button id="menu-toggle" class="mobile-menu" type="button" aria-expanded="false" aria-controls="sidebar-content">Меню</button>
+    <div id="sidebar-content">
+      <div class="side-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+      <button id="new-run" class="nav active"><span aria-hidden="true">＋</span> Новый разбор</button>
+      <button id="nav-library" class="nav"><span aria-hidden="true">▤</span> Библиотека актов</button>
+      <button id="nav-settings" class="nav"><span aria-hidden="true">⚙</span> Подключения</button>
+      <div class="history-heading"><span class="side-label">ИСТОРИЯ ИССЛЕДОВАНИЙ</span><span id="history-count">0</span></div>
+      <nav id="history" aria-label="История запусков"><p class="history-empty">Здесь появятся ваши исследования</p></nav>
+      <div class="side-footer"><span class="local-dot"></span> Локальное рабочее пространство<p>Арбитражные споры<br>Контент маркетплейсов</p><span class="side-version">Исследовательский прототип · v0.4</span></div>
+    </div>
   </aside>
   <main>
-    <header><span>Исследование дела <span class="slash">/</span> Приём ситуации</span><span class="badge">6 ЭТАПОВ</span></header>
+    <header class="topbar"><div><span class="breadcrumb">Рабочее пространство</span><span class="slash">/</span><span>Исследование спора</span></div><span class="top-status"><span class="local-dot"></span> Данные с источниками</span></header>
     <section class="intro">
-      <div class="eyebrow">ОТ ФАБУЛЫ К СТРУКТУРИРОВАННЫМ СВЕДЕНИЯМ</div>
-      <h1>От ситуации — к судебной практике.</h1>
-      <p>Опишите спор о карточке товара. Агент изучит исходные сведения,<br class="wide"> отметит противоречия и подготовит вопросы для уточнения.</p>
+      <div><div class="eyebrow"><span></span> ЮРИДИЧЕСКОЕ ИССЛЕДОВАНИЕ</div><h1>Сначала факты.<br><em>Затем — аргументы.</em></h1><p>Разберите ситуацию, найдите судебную практику<br class="wide"> и проверьте, на чём основан каждый вывод.</p></div>
+      <div class="intro-note"><span class="note-symbol" aria-hidden="true">§</span><strong>Контент маркетплейсов</strong><p>Фотографии, инфографика<br>и тексты карточек товаров</p><span class="tag">Ozon</span><span class="tag">Wildberries</span></div>
     </section>
     <div class="pipeline" aria-label="Этапы системы">
-      <span class="current">01 <b>Разбор ситуации</b></span><span>02 Поиск</span><span>03 Исследование</span><span>04 Сравнение</span><span>05 Критика</span><span>06 Отчёт</span>
+      <span class="current"><i>01</i><b>Разбор</b></span><span><i>02</i><b>Поиск</b></span><span><i>03</i><b>Исследование</b></span><span><i>04</i><b>Сравнение</b></span><span><i>05</i><b>Критика</b></span><span><i>06</i><b>Отчёт</b></span>
     </div>
-    <p class="scope-note">Агент разбора готов. Поиск, исследование, сравнение, критика и отчёт — базовые версии для интеграции команды.</p>
-    <div id="connections" class="connections"></div>
     <div id="error" role="alert" hidden></div>
-    <div class="workspace">
+    <div class="workspace" id="workspace">
       <section class="panel intake-panel">
-        <div class="panel-title"><h2>Новая ситуация</h2><span>01 / ВВОД</span></div>
-        <div class="samples"><span>Учебные примеры</span><button data-sample="complete" type="button">Полные сведения</button><button data-sample="missing" type="button">Пробелы</button><button data-sample="conflict" type="button">Противоречие</button></div>
+        <div class="panel-title"><div><span class="section-number">01 / ИСХОДНЫЕ МАТЕРИАЛЫ</span><h2>Опишите ситуацию</h2></div><span class="panel-mark" aria-hidden="true">↗</span></div>
+        <div class="samples"><span>Начать с примера</span><div><button data-sample="complete" type="button">Полные сведения</button><button data-sample="missing" type="button">Пробелы</button><button data-sample="conflict" type="button">Противоречие</button></div></div>
         <form id="intake-form">
-          <label for="title">Название ситуации</label><input id="title" required minlength="3" maxlength="160" placeholder="Например, чужие фотографии в карточке Ozon">
-          <div class="form-row"><div><label for="role">Позиция клиента</label><select id="role"><option value="unknown">Пока не определена</option><option value="claimant">Предъявляет требования</option><option value="respondent">Получил претензию или иск</option></select></div><div><label for="mode">Режим работы</label><select id="mode"><option value="demo">Демонстрация · без API</option><option value="gigachat">GigaChat · API</option><option value="yandex">Alice AI · Yandex API</option></select></div></div>
+          <p id="revision-notice" class="notice" hidden></p>
+          <label for="title">Название исследования</label><input id="title" required minlength="3" maxlength="160" placeholder="Например, копирование фотографий на Ozon">
+          <div class="form-row"><div><label for="role">Сторона клиента</label><select id="role"><option value="unknown">Пока не определена</option><option value="claimant">Предъявляет требования</option><option value="respondent">Получил претензию или иск</option></select></div><div><label for="mode">Обработка</label><select id="mode"><option value="demo">Локальная демонстрация</option><option value="gigachat">GigaChat</option><option value="yandex">Alice AI · Yandex</option></select></div></div>
           <p id="mode-note" class="mode-note"></p>
-          <div id="consent-wrap" hidden><label class="checkbox"><input type="checkbox" id="consent"> Разрешаю отправить введённые тексты и приложения выбранному провайдеру модели для этого разбора.</label></div>
-          <label for="narrative">Что произошло?</label><textarea id="narrative" required minlength="20" maxlength="12000" rows="9" placeholder="Площадка: Ozon&#10;Объект: фотографии товара&#10;Права: ...&#10;Размещение: неизвестно&#10;Требования: ...&#10;Дата события: ..."></textarea>
-          <p class="hint">В демонстрации используйте поля «Площадка:», «Объект:», «Права:», «Размещение:», «Требования:», «Дата события:». GigaChat и Alice AI работают и со свободным описанием.</p>
-          <div class="document-header"><label for="files">Тексты документов <span class="optional">необязательно</span></label><button id="add-document" type="button" class="text-button">＋ Добавить текст</button></div>
-          <input id="files" type="file" accept=".txt,text/plain" multiple>
-          <p class="hint">До 6 файлов TXT в UTF-8 или вставленных текстов. PDF и OCR — компонент участника 2.</p>
+          <div id="consent-wrap" hidden><label class="checkbox"><input type="checkbox" id="consent"> Разрешаю передать введённые тексты и приложения выбранной модели для этого исследования.</label></div>
+          <label for="narrative">Обстоятельства спора <span class="required-mark">*</span></label><textarea id="narrative" required minlength="20" maxlength="12000" rows="8" placeholder="Что произошло, кому принадлежат права, как контент появился в карточке и чего требует заявитель?"></textarea>
+          <div class="input-caption"><span>Неизвестные обстоятельства можно так и обозначить</span><span id="narrative-count">0 / 12 000</span></div>
+          <details class="writing-help"><summary>Как подготовить описание</summary><p>Укажите площадку, объект, основание прав, способ размещения, требования и дату события. Для локальной демонстрации используйте строки «Площадка:», «Объект:», «Права:», «Размещение:», «Требования:», «Дата события:». В облачном режиме доступно свободное описание.</p></details>
+          <div class="document-header"><label for="files">Документы <span class="optional">необязательно</span></label><button id="add-document" type="button" class="text-button">＋ Вставить текст</button></div>
+          <div class="upload-zone"><span aria-hidden="true">↥</span><div><strong>Добавьте материалы ситуации</strong><p>До 6 текстов · TXT в UTF-8</p><input id="files" type="file" accept=".txt,text/plain" multiple aria-label="Загрузить текстовые документы"></div></div>
           <div id="documents"></div>
-          <label class="checkbox"><input type="checkbox" id="search-enabled"> Найти судебную практику после разбора</label>
-          <label for="search-query">Поисковая формулировка (необязательно)</label><input id="search-query" maxlength="250" placeholder="Например, Wildberries фотографии">
-          <p class="hint">В источник передаётся только поисковый запрос. Не указывайте персональные данные. Базовый поиск: до 3 дел, первая страница выдачи.</p>
-          <button id="submit" class="primary" type="submit">Разобрать ситуацию <span>→</span></button>
+          <div class="search-options"><label class="checkbox"><input type="checkbox" id="search-enabled"> <span><strong>Найти судебную практику</strong><small>После проверки полноты исходных сведений</small></span></label><label for="search-query">Уточнить поисковую формулировку</label><input id="search-query" maxlength="250" placeholder="Тема или номер известного дела"><p class="hint">Не включайте персональные данные. Поиск ограничен доступными источниками.</p></div>
+          <button id="submit" class="primary" type="submit">Начать исследование <span aria-hidden="true">→</span></button>
+          <p class="form-footnote">Выводы предварительные. Итоговую оценку делает юрист.</p>
         </form>
       </section>
-      <section class="panel output-panel" aria-live="polite">
-        <div class="panel-title"><h2>Карточка ситуации</h2><span id="run-status">ОЖИДАЕТ ВВОДА</span></div>
-        <div id="empty" class="empty"><div class="empty-icon">≡</div><h3>Факты — с опорой на источник</h3><p>Здесь появятся сведения, точные цитаты,<br>вопросы и журнал действий агента.</p><div class="principles"><span>01 Источник у каждого сведения</span><span>02 Неизвестное остаётся неизвестным</span><span>03 Противоречия видны юристу</span></div></div>
+      <section class="panel output-panel" aria-live="polite" aria-busy="false">
+        <div class="panel-title"><div><span class="section-number">02 / РЕЗУЛЬТАТ ИССЛЕДОВАНИЯ</span><h2>Материалы и выводы</h2></div><span id="run-status" class="status-label">ОЖИДАЕТ ВВОДА</span></div>
+        <div id="empty" class="empty"><div class="empty-illustration" aria-hidden="true"><div class="paper paper-back"></div><div class="paper"><span>МАТЕРИАЛЫ ДЕЛА</span><i></i><i></i><i></i><b>“</b><i></i><i></i></div><span class="paper-check">✓</span></div><span class="eyebrow">ПРОВЕРЯЕМЫЕ ОСНОВАНИЯ</span><h3>У каждого вывода —<br>свой источник.</h3><p>Здесь появятся карточка ситуации,<br>подходящие акты и цитаты, которые<br>можно проверить в оригинале.</p><div class="principles"><span><b>01</b> Сведения отделены от предположений</span><span><b>02</b> Неизвестное остаётся неизвестным</span><span><b>03</b> Ограничения видны в результате</span></div></div>
         <div id="result" hidden></div>
-        <div id="run-actions" hidden><a id="export" class="secondary">Скачать JSON и журнал</a><button id="retry" type="button" hidden>Повторить после ошибки</button></div>
-        <details id="trace-wrap" hidden><summary>Журнал действий агента</summary><ol id="trace"></ol></details>
+        <div id="run-actions" class="run-actions" hidden><a id="export" class="secondary">↓ JSON и журнал</a><button id="cancel" type="button" class="secondary" hidden>Остановить</button><button id="resume" type="button" class="secondary" hidden>Продолжить</button><button id="retry" type="button" class="secondary" hidden>Начать заново после ошибки</button></div>
+        <details id="trace-wrap" class="trace-wrap" hidden><summary>Журнал исследования <span>Действия и этапы</span></summary><ol id="trace"></ol></details>
       </section>
     </div>
-    <section class="panel library-panel"><details><summary>Библиотека судебных актов · добавить текст из источника</summary><p class="hint">Резервный источник поиска. Загруженный текст отмечается как предоставленный пользователем. Для разделения страниц вставьте символ разрыва страницы; иначе ссылка на страницу условная.</p><form id="library-form"><div class="form-row"><div><label for="act-number">Номер дела</label><input id="act-number" required maxlength="100"></div><div><label for="act-court">Суд</label><input id="act-court" required maxlength="200"></div></div><label for="act-url">Ссылка КАД / Банк решений</label><input id="act-url" type="url" required><label for="act-text">Текст судебного акта</label><textarea id="act-text" required minlength="50" maxlength="100000" rows="6"></textarea><button type="submit">Добавить в библиотеку</button><p id="library-message" role="status"></p></form><div id="library-list"></div></details></section>
-    <footer>Рабочая карточка не является юридическим заключением. Сведения клиента и документы требуют проверки юристом.</footer>
+    <section class="panel library-panel" id="library-section"><details><summary>Библиотека судебных актов · добавить текст из источника</summary><div class="library-content"><p class="hint">Локальная подборка для повторного поиска. Тексты, добавленные вручную, отмечаются как непроверенные по оригиналу. Разделение страниц — символом разрыва страницы.</p><form id="library-form"><div class="form-row"><div><label for="act-number">Номер дела</label><input id="act-number" required maxlength="100" placeholder="А70-7129/2024"></div><div><label for="act-court">Суд</label><input id="act-court" required maxlength="200" placeholder="Наименование суда"></div></div><label for="act-url">Ссылка КАД / Банк решений</label><input id="act-url" type="url" required placeholder="https://kad.arbitr.ru/…"><label for="act-text">Текст судебного акта</label><textarea id="act-text" required minlength="50" maxlength="100000" rows="6"></textarea><button type="submit" class="secondary">Добавить в библиотеку</button><p id="library-message" role="status"></p></form><div id="library-list"></div></div></details></section>
+    <section class="panel settings-panel" id="settings-section"><details id="settings-details"><summary>Подключения и режим обработки <span>Проверка доступа к источникам</span></summary><div id="connections" class="connections"></div></details></section>
+    <footer><span>LexAgent <b>·</b> Перспектива дела</span><p>Исследовательский инструмент для юриста.<br>Сходство дел не является вероятностью выигрыша.</p></footer>
   </main>
 </body>
 </html>

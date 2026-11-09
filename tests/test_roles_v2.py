@@ -54,14 +54,16 @@ def test_report_rejects_invented_references_and_blocked_evidence():
     provider = Script([
         ("get_verified_materials", {}),
         ("record_conclusion", {"text": "Источник описывает размещение", "evidence_ids": ["fake"]}),
-        ("record_conclusion", {"text": "Источник описывает размещение", "evidence_ids": [identity]}),
+        ("record_conclusion", {
+            "text": "Источник описывает размещение", "evidence_ids": [identity]}),
         ("finish_report", {"next_steps": ["Проверить историю"]}),
     ])
     result = asyncio.run(ReportAgent(provider).run({}, [], evidence, {}, lambda *args: None))
     assert len(result["conclusions"]) == 1 and True in provider.errors
     blocked = Script([
         ("get_verified_materials", {}),
-        ("record_conclusion", {"text": "Источник описывает размещение", "evidence_ids": [identity]}),
+        ("record_conclusion", {
+            "text": "Источник описывает размещение", "evidence_ids": [identity]}),
         ("finish_report", {}),
     ])
     result = asyncio.run(ReportAgent(blocked).run({}, [], evidence, {"issues": [{

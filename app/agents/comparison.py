@@ -48,7 +48,8 @@ class ComparisonAgent:
                         if finding.relation != "unknown" and not finding.evidence_ids:
                             raise ValueError("Нужна опора на источник")
                         for identity in finding.evidence_ids:
-                            if identity not in read or by_id[identity]["act_id"] != comparison.case_id:
+                            if (identity not in read or
+                                    by_id[identity]["act_id"] != comparison.case_id):
                                 raise ValueError("Ссылка должна принадлежать прочитанному акту")
                     value = comparison.model_dump()
                     value["similarities"] = "\n".join(

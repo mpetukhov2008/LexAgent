@@ -68,7 +68,8 @@ class Worker:
                             pipeline.run(
                                 run["payload"], result, emit, state["pipeline"], save_pipeline
                             ),
-                            timeout=max(0.01, self.settings.run_timeout - (time.monotonic() - started)),
+                            timeout=max(0.01, self.settings.run_timeout -
+                                        (time.monotonic() - started)),
                         )
                     except (AgentError, asyncio.TimeoutError) as exc:
                         result["search"] = {

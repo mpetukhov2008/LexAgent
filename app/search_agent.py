@@ -48,7 +48,9 @@ def fuse_candidates(batches, queries, limit=6):
         for rank, act in enumerate(rows, 1):
             identity = act.get("file_url") or act["id"]
             if identity not in merged:
-                merged[identity] = {**act, "retrieval": {"score": 0.0, "matches": [], "origins": []}}
+                merged[identity] = {
+                    **act, "retrieval": {"score": 0.0, "matches": [], "origins": []}
+                }
             item = merged[identity]
             if not item.get("pages") and act.get("pages"):
                 item["pages"] = act["pages"]

@@ -13,13 +13,19 @@ const statuses = {
   running: "В РАБОТЕ",
   completed: "РАЗБОР ЗАВЕРШЁН",
   needs_clarification: "НУЖНЫ УТОЧНЕНИЯ",
-  failed: "ОШИБКА"
+  failed: "ОШИБКА",
+  cancelled: "ОСТАНОВЛЕНО"
 };
 let config = {},
   currentId = null,
   timer = null,
   lastRendered = "",
   submission = null;
+let revisionParent = null;
+
+function updateCounter() {
+  $('narrative-count').textContent = $('narrative').value.length.toLocaleString('ru-RU') + ' / 12 000';
+}
 
 function el(tag, text, cls) {
   const node = document.createElement(tag);
@@ -52,7 +58,8 @@ async function api(path, options = {}) {
 function modeNote() {
   const online = $('mode').value !== 'demo';
   $('consent-wrap').hidden = !online;
-  $('mode-note').textContent = $('mode').value === 'gigachat' ? (config.gigachat_ready ? 'GigaChat настроен. Доступ проверяется при запросе; подключение не гарантируется наличием ключа.' : 'Укажите GIGACHAT_AUTH_KEY в .env.') : online ? (config.yandex_ready ? 'Тексты обрабатывает Alice AI через Yandex AI Studio.' : 'API ещё не настроен. Укажите ключ и каталог в .env, затем перезапустите сервер.') : 'Локальный сценарий по правилам. Языковая модель и поиск КАД не вызываются.';
+  $('consent').required = online;
+  $('mode-note').textContent = $('mode').value === 'gigachat' ? (config.gigachat_ready ? 'Обработка через GigaChat. Тексты будут переданы выбранной модели после вашего согласия.' : 'GigaChat пока не настроен. Проверьте раздел «Подключения» и инструкцию запуска.') : online ? (config.yandex_ready ? 'Обработка через Alice AI. Требуется согласие на передачу текстов.' : 'Облачный режим пока не настроен. Проверьте раздел «Подключения».') : 'Учебный режим по правилам. Модель и внешние судебные источники не вызываются.';
 }
 
 function addDocument(name = '', text = '') {
@@ -79,6 +86,8 @@ function addDocument(name = '', text = '') {
 }
 
 function loadSample(sample) {
+  revisionParent = null;
+  $('revision-notice').hidden = true;
   $('title').value = sample.title;
   $('narrative').value = sample.narrative;
   $('role').value = sample.role;
@@ -87,19 +96,24 @@ function loadSample(sample) {
   $('documents').replaceChildren();
   sample.documents.forEach(d => addDocument(d.name, d.text));
   modeNote();
+  updateCounter();
 }
 async function history() {
   const runs = await api('/api/runs');
   $('history').replaceChildren();
+  $('history-count').textContent = runs.length;
+  if (!runs.length) $('history').append(el('p', 'Здесь появятся ваши исследования', 'history-empty'));
   for (const run of runs) {
     const b = el('button', run.title);
     b.append(el('small', statuses[run.status] + ' · ' + run.mode.toUpperCase()));
     b.onclick = () => selectRun(run.id);
+    b.classList.toggle('selected', run.id === currentId);
     $('history').append(b);
   }
 }
 
 function render(run) {
+  document.querySelector('.output-panel').setAttribute('aria-busy', String(['queued', 'running'].includes(run.status)));
   $('empty').hidden = true;
   $('result').hidden = false;
   $('run-actions').hidden = false;
@@ -110,11 +124,15 @@ function render(run) {
   }
   $('export').href = '/api/runs/' + run.id + '/export';
   $('retry').hidden = run.status !== 'failed';
+  $('cancel').hidden = !['queued', 'running'].includes(run.status);
+  $('resume').hidden = !['cancelled', 'failed'].includes(run.status);
   const box = $('result');
   box.replaceChildren();
-  box.append(el('div', run.payload.title, 'run-meta'));
+  box.append(el('h3', run.payload.title, 'result-heading'));
   box.append(el('div', (run.payload.mode === 'demo' ? 'ДЕМОНСТРАЦИЯ БЕЗ МОДЕЛИ' : run.payload.mode.toUpperCase()) + ' · Попытка ' + run.attempts, 'run-meta'));
-  if (run.parent_id) box.append(el('div', 'Новая версия после уточнений. Исходный запуск сохранён.', 'run-meta'));
+  if (run.parent_id) box.append(el('div', 'Новая версия. Исходный запуск и его материалы сохранены.', 'run-meta'));
+  if (run.payload.revision_note) box.append(el('p', run.payload.revision_note, 'hint'));
+  if (run.status === 'cancelled') box.append(el('p', 'Исследование остановлено. Сохранённые этапы можно продолжить.', 'notice warn'));
   if (run.error) box.append(el('p', run.error, 'notice fail'));
   if (['queued', 'running'].includes(run.status)) {
     const p = el('p', undefined, 'notice');
@@ -128,17 +146,20 @@ function render(run) {
   for (const [value, label] of [
       [result.facts.length, 'сведений с источниками'],
       [result.questions.length, 'уточнений'],
-      [result.search?.cases?.length || 0, 'дел в подборке']
+      [result.search?.case_records?.length || new Set((result.search?.cases || []).map(c => c.number)).size, 'дел в подборке']
     ]) {
     const metric = el('div');
     metric.append(el('strong', String(value)), el('span', label));
     metrics.append(metric);
   }
   box.append(metrics);
-  const reuse = el('button', 'Взять за основу нового разбора', 'text-button');
+  const reuse = el('button', 'Исправить исходные сведения ↗', 'text-button');
   reuse.type = 'button';
   reuse.onclick = () => {
     loadSample(run.payload);
+    revisionParent = run.id;
+    $('revision-notice').hidden = false;
+    $('revision-notice').textContent = 'Редактирование сохранённой ситуации. Изменения создадут новую версию; исходный разбор останется в истории.';
     $('mode').value = run.payload.mode;
     $('search-enabled').checked = Boolean(run.payload.search_enabled);
     $('search-query').value = run.payload.search_query || '';
@@ -152,6 +173,9 @@ function render(run) {
   box.append(reuse);
   box.append(el('p', result.ready_for_search ? 'Исходная карточка заполнена. Результаты поиска, если он включён, показаны ниже.' : 'Нужны уточнения. Система сохранила пробелы и не подставляла догадки.', 'notice' + (result.questions.length ? ' warn' : '')));
   for (const conflict of result.conflicts) box.append(el('p', conflict.message, 'notice warn'));
+  const factsWrap = el('details', undefined, 'facts-wrap');
+  factsWrap.open = !result.search?.cases?.length;
+  factsWrap.append(el('summary', 'Исходные сведения · ' + result.facts.length));
   for (const [key, label] of Object.entries(labels)) {
     const section = el('div', undefined, 'field');
     section.append(el('h3', label.toUpperCase()));
@@ -166,8 +190,9 @@ function render(run) {
       f.append(source);
       section.append(f);
     }
-    box.append(section);
+    factsWrap.append(section);
   }
+  box.append(factsWrap);
   if (result.questions.length) {
     const form = el('form', undefined, 'questions');
     form.append(el('h3', 'Уточнения для юриста'));
@@ -240,7 +265,13 @@ async function refreshRun() {
   }
   const stageNames = ['intake', 'search', 'research', 'comparison', 'critique', 'report'];
   const activeStage = [...events].reverse().find(event => stageNames.includes(event.detail.stage))?.detail.stage || 'intake';
-  document.querySelectorAll('.pipeline span').forEach((node, index) => node.classList.toggle('current', stageNames[index] === activeStage));
+  const activeIndex = stageNames.indexOf(activeStage);
+  document.querySelectorAll('.pipeline>span').forEach((node, index) => {
+    node.classList.toggle('current', index === activeIndex);
+    node.classList.toggle('done', index < activeIndex);
+    if (index === activeIndex) node.setAttribute('aria-current', 'step');
+    else node.removeAttribute('aria-current');
+  });
   $('trace').replaceChildren();
   for (const event of events) {
     const li = el('li');
@@ -275,6 +306,7 @@ $('intake-form').onsubmit = async event => {
     consent_to_cloud: $('consent').checked,
     search_enabled: $('search-enabled').checked,
     search_query: $('search-query').value,
+    revision_note: revisionParent ? 'Исходные сведения отредактированы пользователем' : '',
     answers: {},
     documents: [...$('documents').children].map(d => ({
       name: d.querySelector('input').value,
@@ -282,12 +314,14 @@ $('intake-form').onsubmit = async event => {
     }))
   };
   const body = JSON.stringify(payload);
-  if (!submission || submission.body !== body) submission = {
+  const endpoint = revisionParent ? '/api/runs/' + revisionParent + '/revisions' : '/api/runs';
+  if (!submission || submission.body !== body || submission.endpoint !== endpoint) submission = {
     body,
+    endpoint,
     key: crypto.randomUUID()
   };
   try {
-    const run = await api('/api/runs', {
+    const run = await api(endpoint, {
       method: 'POST',
       headers: {
         'Idempotency-Key': submission.key
@@ -295,6 +329,8 @@ $('intake-form').onsubmit = async event => {
       body
     });
     submission = null;
+    revisionParent = null;
+    $('revision-notice').hidden = true;
     await selectRun(run.id);
     await history();
   } catch (e) {
@@ -306,6 +342,9 @@ $('intake-form').onsubmit = async event => {
 $('new-run').onclick = () => {
   clearTimeout(timer);
   currentId = null;
+  revisionParent = null;
+  submission = null;
+  $('revision-notice').hidden = true;
   location.hash = '';
   $('intake-form').reset();
   $('documents').replaceChildren();
@@ -316,6 +355,8 @@ $('new-run').onclick = () => {
   $('run-status').textContent = 'ОЖИДАЕТ ВВОДА';
   clearError();
   modeNote();
+  updateCounter();
+  $('workspace').scrollIntoView({behavior: 'smooth'});
 };
 $('retry').onclick = async () => {
   try {
@@ -328,6 +369,34 @@ $('retry').onclick = async () => {
   }
 };
 $('mode').onchange = modeNote;
+$('narrative').oninput = updateCounter;
+$('menu-toggle').onclick = () => {
+  const open = document.body.classList.toggle('history-open');
+  $('menu-toggle').setAttribute('aria-expanded', String(open));
+};
+for (const [id, target] of [['nav-library', 'library-section'], ['nav-settings', 'settings-section']]) {
+  $(id).onclick = () => {
+    const panel = $(target);
+    panel.querySelector('details').open = true;
+    panel.scrollIntoView({behavior: 'smooth'});
+    document.body.classList.remove('history-open');
+    $('menu-toggle').setAttribute('aria-expanded', 'false');
+  };
+}
+for (const action of ['cancel', 'resume']) $(action).onclick = async () => {
+  const id = currentId;
+  $(action).disabled = true;
+  clearError();
+  try {
+    await api('/api/runs/' + id + '/' + action, {method: 'POST'});
+    await selectRun(id);
+  } catch (error) { showError(error); }
+  finally { $(action).disabled = false; }
+};
+window.addEventListener('hashchange', () => {
+  const id = location.hash.slice(1);
+  if (id && id !== currentId) selectRun(id);
+});
 $('add-document').onclick = () => {
   try {
     addDocument();

@@ -7,8 +7,8 @@ import time
 from pydantic import Field, field_validator
 
 from app.schemas import StrictModel
-from app.sources import court_url
 from app.search_agent import terms
+from app.sources import court_url
 
 
 class ActImport(StrictModel):

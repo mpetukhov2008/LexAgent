@@ -231,13 +231,14 @@ class Store:
             if not changed:
                 raise Conflict("Остановить можно только выполняющееся задание или очередь")
             self.event(db, run_id, "cancelled", {"message": "Остановлено пользователем; "
-                       "выполняющийся сетевой запрос может завершиться, результат не перезапишется"})
+                       "сетевой запрос может завершиться, но не перезапишет результат"})
 
     def resume(self, run_id):
         with self.connect() as db:
             changed = db.execute(
                 "UPDATE runs SET status='queued',owner=NULL,lease_until=NULL,error=NULL,"
-                "result=NULL,attempts=0,updated_at=? WHERE id=? AND status IN ('failed','cancelled')",
+                "result=NULL,attempts=0,updated_at=? WHERE id=? "
+                "AND status IN ('failed','cancelled')",
                 (time.time(), run_id),
             ).rowcount
             if not changed:
