@@ -1,0 +1,272 @@
+{
+  "synthetic": true,
+  "mode": "demo",
+  "input": {
+    "title": "Фотографии в карточке конкурента",
+    "narrative": "Учебная синтетическая ситуация. Я продавец, обнаруживший свои фото у конкурента.\nПлощадка: Ozon\nОбъект: фотографии товара и инфографика\nПрава: заявляю права по договору с фотографом; требуется юридическая проверка договора\nРазмещение: самостоятельная загрузка продавцом\nТребования: удалить изображения и выплатить компенсацию\nДата события: 20.10.2026 — обнаружение спорного контента",
+    "role": "claimant",
+    "mode": "demo",
+    "documents": [
+      {
+        "name": "Учебный протокол осмотра.txt",
+        "text": "Синтетический фрагмент, не реальный судебный документ.\nПлощадка: Ozon\nОбъект: фотографии товара и инфографика\nЗафиксировано наличие изображений на странице. Личность загрузившего лица этим документом не установлена."
+      }
+    ],
+    "answers": {},
+    "consent_to_yandex": false
+  },
+  "result": {
+    "schema_version": "1.0",
+    "agent": "intake",
+    "mode": "demo",
+    "model": null,
+    "title": "Фотографии в карточке конкурента",
+    "role": "claimant",
+    "facts": [
+      {
+        "field": "platform",
+        "value": "Ozon",
+        "source_id": "narrative",
+        "quote": "Площадка: Ozon",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 81
+      },
+      {
+        "field": "object",
+        "value": "фотографии товара и инфографика",
+        "source_id": "narrative",
+        "quote": "Объект: фотографии товара и инфографика",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 96
+      },
+      {
+        "field": "rights",
+        "value": "заявляю права по договору с фотографом; требуется юридическая проверка договора",
+        "source_id": "narrative",
+        "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 136
+      },
+      {
+        "field": "placement",
+        "value": "самостоятельная загрузка продавцом",
+        "source_id": "narrative",
+        "quote": "Размещение: самостоятельная загрузка продавцом",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 223
+      },
+      {
+        "field": "demands",
+        "value": "удалить изображения и выплатить компенсацию",
+        "source_id": "narrative",
+        "quote": "Требования: удалить изображения и выплатить компенсацию",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 270
+      },
+      {
+        "field": "event_date",
+        "value": "20.10.2026 — обнаружение спорного контента",
+        "source_id": "narrative",
+        "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 326
+      },
+      {
+        "field": "platform",
+        "value": "Ozon",
+        "source_id": "doc-1",
+        "quote": "Площадка: Ozon",
+        "status": "document_statement",
+        "source_name": "Учебный протокол осмотра.txt",
+        "quote_start": 55
+      },
+      {
+        "field": "object",
+        "value": "фотографии товара и инфографика",
+        "source_id": "doc-1",
+        "quote": "Объект: фотографии товара и инфографика",
+        "status": "document_statement",
+        "source_name": "Учебный протокол осмотра.txt",
+        "quote_start": 70
+      }
+    ],
+    "fields": {
+      "platform": [
+        {
+          "field": "platform",
+          "value": "Ozon",
+          "source_id": "narrative",
+          "quote": "Площадка: Ozon",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 81
+        },
+        {
+          "field": "platform",
+          "value": "Ozon",
+          "source_id": "doc-1",
+          "quote": "Площадка: Ozon",
+          "status": "document_statement",
+          "source_name": "Учебный протокол осмотра.txt",
+          "quote_start": 55
+        }
+      ],
+      "object": [
+        {
+          "field": "object",
+          "value": "фотографии товара и инфографика",
+          "source_id": "narrative",
+          "quote": "Объект: фотографии товара и инфографика",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 96
+        },
+        {
+          "field": "object",
+          "value": "фотографии товара и инфографика",
+          "source_id": "doc-1",
+          "quote": "Объект: фотографии товара и инфографика",
+          "status": "document_statement",
+          "source_name": "Учебный протокол осмотра.txt",
+          "quote_start": 70
+        }
+      ],
+      "rights": [
+        {
+          "field": "rights",
+          "value": "заявляю права по договору с фотографом; требуется юридическая проверка договора",
+          "source_id": "narrative",
+          "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 136
+        }
+      ],
+      "placement": [
+        {
+          "field": "placement",
+          "value": "самостоятельная загрузка продавцом",
+          "source_id": "narrative",
+          "quote": "Размещение: самостоятельная загрузка продавцом",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 223
+        }
+      ],
+      "demands": [
+        {
+          "field": "demands",
+          "value": "удалить изображения и выплатить компенсацию",
+          "source_id": "narrative",
+          "quote": "Требования: удалить изображения и выплатить компенсацию",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 270
+        }
+      ],
+      "event_date": [
+        {
+          "field": "event_date",
+          "value": "20.10.2026 — обнаружение спорного контента",
+          "source_id": "narrative",
+          "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 326
+        }
+      ]
+    },
+    "questions": [],
+    "conflicts": [],
+    "reason": "Доступные источники прочитаны, пробелы отмечены",
+    "steps": 6,
+    "usage": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0
+    },
+    "ready_for_search": true,
+    "limits": [
+      "Это разбор исходных сведений, а не оценка перспектив и не поиск судебных дел.",
+      "Цитата подтверждает наличие слов в источнике, но не достоверность утверждения.",
+      "Документы не прошли независимую юридическую проверку."
+    ],
+    "handoff": {
+      "next_agent": "search_planner",
+      "implemented": false
+    }
+  },
+  "events": [
+    {
+      "kind": "tool",
+      "step": 1,
+      "tool": "list_documents",
+      "reason": "Определить доступные источники",
+      "source_id": null,
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 2,
+      "tool": "read_document",
+      "reason": "Прочитать еще не изученный источник",
+      "source_id": "narrative",
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 3,
+      "tool": "record_facts",
+      "reason": "Сохранить явно указанные сведения",
+      "source_id": null,
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 4,
+      "tool": "read_document",
+      "reason": "Прочитать еще не изученный источник",
+      "source_id": "doc-1",
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 5,
+      "tool": "record_facts",
+      "reason": "Сохранить явно указанные сведения",
+      "source_id": null,
+      "field": null,
+      "facts_count": 8,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 6,
+      "tool": "finish",
+      "reason": "Завершить разбор в пределах полномочий агента 1",
+      "source_id": null,
+      "field": null,
+      "facts_count": 8,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    }
+  ]
+}

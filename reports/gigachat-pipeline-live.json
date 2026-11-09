@@ -1,0 +1,319 @@
+{
+  "synthetic_sources": true,
+  "result": {
+    "warnings": [
+      "Отброшены неподтверждённые цитаты: 5"
+    ],
+    "search": {
+      "query": "практика судебных решений по нарушению прав на фотографии товара и инфографику на площадке Ozon",
+      "rationale": "Тематический запрос для судебной практики формируется на основе объекта нарушения (фотографии товара и инфографика) и площадки (Ozon). Затем он направляется для дальнейшего использования в юридических исследованиях и анализе судебными органами и юристами.\n    }\n}"
+    },
+    "coverage": {
+      "source": "synthetic",
+      "local_count": 0,
+      "total": 1,
+      "pages": 1
+    },
+    "cases": [
+      {
+        "id": "synthetic-1",
+        "number": "УЧЕБНЫЙ ПРИМЕР — НЕ СУДЕБНОЕ ДЕЛО",
+        "court": "Синтетический источник",
+        "date": "",
+        "kind": "Тест",
+        "file_url": "",
+        "case_url": "",
+        "appeal_status": "Не применимо: тест",
+        "provenance": "synthetic",
+        "pages": [
+          {
+            "page": 1,
+            "text": "Учебный материал, не судебный акт. В вымышленной ситуации продавец самостоятельно разместил фотографии товара на Ozon. Принадлежность исключительных прав подтверждалась договором с фотографом. Размещение фиксировалось протоколом осмотра. Эти предложения используются только для проверки инструментов и цитат."
+          }
+        ]
+      }
+    ],
+    "research": {
+      "evidence": [
+        {
+          "case_id": "синтетический-1",
+          "page": 1,
+          "quote": "фотографии товара на Ozon",
+          "observation": "объект исключительных прав"
+        },
+        {
+          "case_id": "синтетический-1",
+          "page": 1,
+          "quote": "Принадлежность исключительных прав подтверждалась договором с фотографом",
+          "observation": "права на объект"
+        },
+        {
+          "case_id": "синтетический-1",
+          "page": 1,
+          "quote": "продавец самостоятельно разместил фотографии товара на Ozon",
+          "observation": "размещение объекта"
+        },
+        {
+          "case_id": "синтетический-1",
+          "page": 1,
+          "quote": "Размещение фиксировалось протоколом осмотра",
+          "observation": "фиксация размещения"
+        },
+        {
+          "case_id": "синтетический-1",
+          "page": 1,
+          "quote": "Эти предложения используются только для проверки инструментов и цитат",
+          "observation": "выводы суда"
+        }
+      ]
+    },
+    "comparison": {
+      "comparisons": [
+        {
+          "case_id": "synthetic-1",
+          "relevance": "unknown",
+          "similarities": "Совпадают факты использования площадки Ozon, размещения фотографий товара и инфографики, подтверждения прав договором с фотографом, самостоятельного размещения продавцом, фиксации размещения протоколом осмотра",
+          "differences": "Отсутствует информация о требованиях клиента на компенсацию и удалении изображений; отсуствует статус обжалования дела"
+        }
+      ]
+    },
+    "critique": {
+      "concerns": [
+        "Отсутствует информация о требованиях клиента на компенсацию и удалении изображений отсуствует статус обжалования дела"
+      ],
+      "sufficient": false
+    },
+    "report": {
+      "summary": "Представленные материалы касаются дела, связанного с использованием площадки Ozon для размещения фотографий товара и инфографики, подтвержденных договором с фотографом и размещенных продавцом самостоятельно. Фиксация размещения была подтверждена протоколом осмотра. Однако, отсутствуют данные о требованиях клиента на компенсацию и удалении изображений, а также статус обжалования дела. Это ограничивает возможность сделать окончательные выводы и требует дополнительного исследования.$$\n}",
+      "next_steps": [
+        "Найти и изучить дела, связанные с претензиями клиентов на компенсацию и удалением изображений с платформы Ozon, чтобы определить возможные требования и практику решений,",
+        "Определить статус обжалования рассматриваемого дела, чтобы понять текущую правовую ситуацию\n    ],"
+      ]
+    },
+    "query": "практика судебных решений по нарушению прав на фотографии товара и инфографику на площадке Ozon",
+    "status": "partial",
+    "evidence": [],
+    "comparisons": [
+      {
+        "case_id": "synthetic-1",
+        "relevance": "unknown",
+        "similarities": "Совпадают факты использования площадки Ozon, размещения фотографий товара и инфографики, подтверждения прав договором с фотографом, самостоятельного размещения продавцом, фиксации размещения протоколом осмотра",
+        "differences": "Отсутствует информация о требованиях клиента на компенсацию и удалении изображений; отсуствует статус обжалования дела"
+      }
+    ],
+    "limits": [
+      "Базовая версия этапов 2–6: один запрос, первая страница выдачи, до 3 дел.",
+      "Модель читает до 4 страниц каждого акта, до 5000 символов на страницу.",
+      "История обжалования и полнота противоположной практики не проверены.",
+      "Текст отчёта требует проверки юристом; наличие цитаты не доказывает смысловую связь."
+    ]
+  },
+  "events": [
+    {
+      "kind": "stage_start",
+      "detail": {
+        "stage": "search",
+        "message": "Выполняется этап"
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "search",
+        "tool": "inspect_context",
+        "step": 1,
+        "usage": {
+          "prompt_tokens": 163,
+          "completion_tokens": 12
+        }
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "search",
+        "tool": "submit_result",
+        "step": 2,
+        "usage": {
+          "prompt_tokens": 258,
+          "completion_tokens": 99
+        }
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "search",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "coverage",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "cases",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_start",
+      "detail": {
+        "stage": "research",
+        "message": "Выполняется этап"
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "research",
+        "tool": "inspect_context",
+        "step": 1,
+        "usage": {
+          "prompt_tokens": 202,
+          "completion_tokens": 12
+        }
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "research",
+        "tool": "submit_result",
+        "step": 2,
+        "usage": {
+          "prompt_tokens": 399,
+          "completion_tokens": 318
+        }
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "research",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_start",
+      "detail": {
+        "stage": "comparison",
+        "message": "Выполняется этап"
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "comparison",
+        "tool": "inspect_context",
+        "step": 1,
+        "usage": {
+          "prompt_tokens": 222,
+          "completion_tokens": 12
+        }
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "comparison",
+        "tool": "submit_result",
+        "step": 2,
+        "usage": {
+          "prompt_tokens": 1273,
+          "completion_tokens": 125
+        }
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "comparison",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_start",
+      "detail": {
+        "stage": "critique",
+        "message": "Выполняется этап"
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "critique",
+        "tool": "inspect_context",
+        "step": 1,
+        "usage": {
+          "prompt_tokens": 175,
+          "completion_tokens": 12
+        }
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "critique",
+        "tool": "submit_result",
+        "step": 2,
+        "usage": {
+          "prompt_tokens": 190,
+          "completion_tokens": 55
+        }
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "critique",
+        "message": "Этап сохранён"
+      }
+    },
+    {
+      "kind": "stage_start",
+      "detail": {
+        "stage": "report",
+        "message": "Выполняется этап"
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "report",
+        "tool": "inspect_context",
+        "step": 1,
+        "usage": {
+          "prompt_tokens": 180,
+          "completion_tokens": 12
+        }
+      }
+    },
+    {
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "report",
+        "tool": "submit_result",
+        "step": 2,
+        "usage": {
+          "prompt_tokens": 437,
+          "completion_tokens": 173
+        }
+      }
+    },
+    {
+      "kind": "stage_done",
+      "detail": {
+        "stage": "report",
+        "message": "Этап сохранён"
+      }
+    }
+  ],
+  "framework": "LangChain",
+  "model": "GigaChat-2-Pro"
+}

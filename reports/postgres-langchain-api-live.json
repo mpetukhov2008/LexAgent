@@ -1,0 +1,417 @@
+{
+  "run": {
+    "id": "457a8413-8f25-4c50-b597-66352ad89779",
+    "parent_id": null,
+    "payload": {
+      "answers": {},
+      "consent_to_cloud": true,
+      "consent_to_yandex": false,
+      "documents": [],
+      "mode": "gigachat",
+      "narrative": "Учебная синтетическая ситуация. Я продавец, обнаруживший свои фото у конкурента.\nПлощадка: Ozon\nОбъект: фотографии товара и инфографика\nПрава: заявляю права по договору с фотографом; требуется юридическая проверка договора\nРазмещение: самостоятельная загрузка продавцом\nТребования: удалить изображения и выплатить компенсацию\nДата события: 20.10.2026 — обнаружение спорного контента",
+      "role": "claimant",
+      "search_enabled": true,
+      "search_query": "",
+      "title": "LangChain + GigaChat Pro — учебная проверка"
+    },
+    "status": "completed",
+    "result": {
+      "agent": "intake",
+      "conflicts": [],
+      "facts": [
+        {
+          "field": "platform",
+          "quote": "Площадка: Ozon",
+          "quote_start": 81,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "Ozon"
+        },
+        {
+          "field": "object",
+          "quote": "Объект: фотографии товара и инфографика",
+          "quote_start": 96,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "фотографии товара и инфографика"
+        },
+        {
+          "field": "rights",
+          "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+          "quote_start": 136,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "договор с фотографом, требуется юридическая проверка договора"
+        },
+        {
+          "field": "placement",
+          "quote": "Размещение: самостоятельная загрузка продавцом",
+          "quote_start": 223,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "самостоятельная загрузка продавцом"
+        },
+        {
+          "field": "demands",
+          "quote": "Требования: удалить изображения и выплатить компенсацию",
+          "quote_start": 270,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "удалить изображения и выплатить компенсацию"
+        },
+        {
+          "field": "event_date",
+          "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+          "quote_start": 326,
+          "source_id": "narrative",
+          "source_name": "Описание клиента",
+          "status": "client_statement",
+          "value": "20.10.2026"
+        }
+      ],
+      "fields": {
+        "demands": [
+          {
+            "field": "demands",
+            "quote": "Требования: удалить изображения и выплатить компенсацию",
+            "quote_start": 270,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "удалить изображения и выплатить компенсацию"
+          }
+        ],
+        "event_date": [
+          {
+            "field": "event_date",
+            "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+            "quote_start": 326,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "20.10.2026"
+          }
+        ],
+        "object": [
+          {
+            "field": "object",
+            "quote": "Объект: фотографии товара и инфографика",
+            "quote_start": 96,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "фотографии товара и инфографика"
+          }
+        ],
+        "placement": [
+          {
+            "field": "placement",
+            "quote": "Размещение: самостоятельная загрузка продавцом",
+            "quote_start": 223,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "самостоятельная загрузка продавцом"
+          }
+        ],
+        "platform": [
+          {
+            "field": "platform",
+            "quote": "Площадка: Ozon",
+            "quote_start": 81,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "Ozon"
+          }
+        ],
+        "rights": [
+          {
+            "field": "rights",
+            "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+            "quote_start": 136,
+            "source_id": "narrative",
+            "source_name": "Описание клиента",
+            "status": "client_statement",
+            "value": "договор с фотографом, требуется юридическая проверка договора"
+          }
+        ]
+      },
+      "handoff": {
+        "implemented": true,
+        "level": "baseline",
+        "next_agent": "search_planner"
+      },
+      "limits": [
+        "Это разбор исходных сведений, а не оценка перспектив и не поиск судебных дел.",
+        "Цитата подтверждает наличие слов в источнике, но не достоверность утверждения.",
+        "Документы не прошли независимую юридическую проверку."
+      ],
+      "mode": "gigachat",
+      "model": "GigaChat-2-Pro",
+      "questions": [],
+      "ready_for_search": true,
+      "reason": "Завершение разбора ситуации по факту предоставления клиентом исходных сведений.  Все шесть полей заполнены.  Противоречий нет.",
+      "role": "claimant",
+      "schema_version": "1.0",
+      "search": {
+        "cases": [],
+        "comparisons": [],
+        "coverage": {
+          "local_count": 0,
+          "remote_failed": true,
+          "source": "local"
+        },
+        "evidence": [],
+        "query": "практика судебных решений по нарушению прав на фотографии товара и инфографику на площадке Ozon",
+        "report": {
+          "next_steps": [
+            "Проверьте доступ к источнику или добавьте судебный акт в локальную библиотеку."
+          ],
+          "summary": "Нет доступных полных текстов для обоснованного сравнения."
+        },
+        "search": {
+          "query": "практика судебных решений по нарушению прав на фотографии товара и инфографику на площадке Ozon",
+          "rationale": "Тематический запрос для судебной практики сформулирован на основе объекта нарушения (фотографии товара и инфографика) и площадки (Ozon), предоставленных в материалах этапа.  персональные данные отсутствуют.  \n    }\n}"
+        },
+        "status": "partial",
+        "warnings": [
+          "Parser API: ключ отклонён (40301)"
+        ]
+      },
+      "steps": 4,
+      "title": "LangChain + GigaChat Pro — учебная проверка",
+      "usage": {
+        "completion_tokens": 457,
+        "prompt_tokens": 625
+      }
+    },
+    "error": null,
+    "attempts": 1,
+    "created_at": 1794075354.786954,
+    "updated_at": 1794075447.4206288
+  },
+  "events": [
+    {
+      "id": 54,
+      "created_at": 1794075354.7900453,
+      "kind": "queued",
+      "detail": {
+        "message": "Задание сохранено в очереди"
+      }
+    },
+    {
+      "id": 55,
+      "created_at": 1794075355.0044115,
+      "kind": "started",
+      "detail": {
+        "message": "Агент разбора ситуации запущен"
+      }
+    },
+    {
+      "id": 56,
+      "created_at": 1794075355.0699964,
+      "kind": "model_request",
+      "detail": {
+        "call": 1,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 57,
+      "created_at": 1794075387.428479,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 1,
+        "tool": "list_documents"
+      }
+    },
+    {
+      "id": 58,
+      "created_at": 1794075387.4702451,
+      "kind": "model_request",
+      "detail": {
+        "call": 2,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 59,
+      "created_at": 1794075387.8706703,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": "narrative",
+        "step": 2,
+        "tool": "read_document"
+      }
+    },
+    {
+      "id": 60,
+      "created_at": 1794075387.9013433,
+      "kind": "model_request",
+      "detail": {
+        "call": 3,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 61,
+      "created_at": 1794075395.1896229,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 6,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 3,
+        "tool": "record_facts"
+      }
+    },
+    {
+      "id": 62,
+      "created_at": 1794075395.2186704,
+      "kind": "model_request",
+      "detail": {
+        "call": 4,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 63,
+      "created_at": 1794075396.0444117,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 6,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 4,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 64,
+      "created_at": 1794075396.2290413,
+      "kind": "stage_start",
+      "detail": {
+        "message": "Выполняется этап",
+        "stage": "search"
+      }
+    },
+    {
+      "id": 65,
+      "created_at": 1794075428.6836188,
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "search",
+        "step": 1,
+        "tool": "inspect_context",
+        "usage": {
+          "completion_tokens": 12,
+          "prompt_tokens": 163
+        }
+      }
+    },
+    {
+      "id": 66,
+      "created_at": 1794075430.6466565,
+      "kind": "stage_tool",
+      "detail": {
+        "stage": "search",
+        "step": 2,
+        "tool": "submit_result",
+        "usage": {
+          "completion_tokens": 95,
+          "prompt_tokens": 68
+        }
+      }
+    },
+    {
+      "id": 67,
+      "created_at": 1794075430.693891,
+      "kind": "checkpoint",
+      "detail": {
+        "message": "Сохранён этап поиска"
+      }
+    },
+    {
+      "id": 68,
+      "created_at": 1794075430.7253475,
+      "kind": "stage_done",
+      "detail": {
+        "message": "Этап сохранён",
+        "stage": "search"
+      }
+    },
+    {
+      "id": 69,
+      "created_at": 1794075447.2553933,
+      "kind": "checkpoint",
+      "detail": {
+        "message": "Сохранён этап поиска"
+      }
+    },
+    {
+      "id": 70,
+      "created_at": 1794075447.2982256,
+      "kind": "stage_done",
+      "detail": {
+        "message": "Этап сохранён",
+        "stage": "coverage"
+      }
+    },
+    {
+      "id": 71,
+      "created_at": 1794075447.3275082,
+      "kind": "checkpoint",
+      "detail": {
+        "message": "Сохранён этап поиска"
+      }
+    },
+    {
+      "id": 72,
+      "created_at": 1794075447.358611,
+      "kind": "stage_done",
+      "detail": {
+        "message": "Этап сохранён",
+        "stage": "cases"
+      }
+    },
+    {
+      "id": 73,
+      "created_at": 1794075447.3897903,
+      "kind": "pipeline_partial",
+      "detail": {
+        "message": "Нет доступных полных текстов для обоснованного сравнения."
+      }
+    },
+    {
+      "id": 74,
+      "created_at": 1794075447.4226332,
+      "kind": "completed",
+      "detail": {
+        "message": "Карточка ситуации сохранена"
+      }
+    }
+  ]
+}

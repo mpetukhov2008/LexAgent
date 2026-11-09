@@ -1,0 +1,532 @@
+{
+  "run": {
+    "id": "739df3bf-b8b6-4f74-9a65-9d1bfeebbec7",
+    "parent_id": null,
+    "payload": {
+      "answers": {},
+      "consent_to_cloud": true,
+      "consent_to_yandex": false,
+      "documents": [],
+      "mode": "gigachat",
+      "narrative": "Учебная синтетическая ситуация. Я продавец, обнаруживший свои фото у конкурента.\nПлощадка: Ozon\nОбъект: фотографии товара и инфографика\nПрава: заявляю права по договору с фотографом; требуется юридическая проверка договора\nРазмещение: самостоятельная загрузка продавцом\nТребования: удалить изображения и выплатить компенсацию\nДата события: 20.10.2026 — обнаружение спорного контента",
+      "role": "claimant",
+      "search_enabled": true,
+      "search_query": "",
+      "title": "Проверка исправленного агента — учебная ситуация"
+    },
+    "status": "failed",
+    "result": null,
+    "error": "Достигнут лимит запросов модели",
+    "attempts": 2,
+    "created_at": 1794057360.6044075,
+    "updated_at": 1794057757.482945
+  },
+  "events": [
+    {
+      "id": 10,
+      "created_at": 1794057360.6044075,
+      "kind": "queued",
+      "detail": {
+        "message": "Задание сохранено в очереди"
+      }
+    },
+    {
+      "id": 11,
+      "created_at": 1794057360.8632782,
+      "kind": "started",
+      "detail": {
+        "message": "Агент разбора ситуации запущен"
+      }
+    },
+    {
+      "id": 12,
+      "created_at": 1794057360.929366,
+      "kind": "model_request",
+      "detail": {
+        "call": 1,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 13,
+      "created_at": 1794057393.3721845,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 1,
+        "tool": "list_documents"
+      }
+    },
+    {
+      "id": 14,
+      "created_at": 1794057393.416097,
+      "kind": "model_request",
+      "detail": {
+        "call": 2,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 15,
+      "created_at": 1794057409.8542566,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": "narrative",
+        "step": 2,
+        "tool": "read_document"
+      }
+    },
+    {
+      "id": 16,
+      "created_at": 1794057410.001486,
+      "kind": "model_request",
+      "detail": {
+        "call": 3,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 17,
+      "created_at": 1794057429.1782863,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 3,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 18,
+      "created_at": 1794057429.2145045,
+      "kind": "model_request",
+      "detail": {
+        "call": 4,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 19,
+      "created_at": 1794057445.993022,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 4,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 20,
+      "created_at": 1794057446.0299482,
+      "kind": "model_request",
+      "detail": {
+        "call": 5,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 21,
+      "created_at": 1794057462.824573,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 5,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 22,
+      "created_at": 1794057462.861019,
+      "kind": "model_request",
+      "detail": {
+        "call": 6,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 23,
+      "created_at": 1794057479.5217116,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 6,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 24,
+      "created_at": 1794057479.5688417,
+      "kind": "model_request",
+      "detail": {
+        "call": 7,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 25,
+      "created_at": 1794057496.2975452,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 7,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 26,
+      "created_at": 1794057496.345367,
+      "kind": "model_request",
+      "detail": {
+        "call": 8,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 27,
+      "created_at": 1794057513.046529,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 8,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 28,
+      "created_at": 1794057513.0883245,
+      "kind": "model_request",
+      "detail": {
+        "call": 9,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 29,
+      "created_at": 1794057530.4391024,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 9,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 30,
+      "created_at": 1794057530.483071,
+      "kind": "model_request",
+      "detail": {
+        "call": 10,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 31,
+      "created_at": 1794057550.687525,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": null,
+        "message": "Нельзя завершить разбор без обработки полей: demands, event_date, object, placement, platform, rights. Сохраните явно указанные сведения через record_facts; только для отсутствующих сведений вызовите ask_clarification.",
+        "ok": false,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 10,
+        "tool": "finish"
+      }
+    },
+    {
+      "id": 32,
+      "created_at": 1794057550.7410426,
+      "kind": "model_request",
+      "detail": {
+        "call": 11,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 33,
+      "created_at": 1794057582.1244087,
+      "kind": "recovery",
+      "detail": {
+        "message": "Срок аренды истек; контрольная точка сохранена",
+        "requeued": true
+      }
+    },
+    {
+      "id": 34,
+      "created_at": 1794057582.1263542,
+      "kind": "started",
+      "detail": {
+        "message": "Агент разбора ситуации запущен"
+      }
+    },
+    {
+      "id": 35,
+      "created_at": 1794057582.2128236,
+      "kind": "model_request",
+      "detail": {
+        "call": 12,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 36,
+      "created_at": 1794057615.92125,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "object",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 11,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 37,
+      "created_at": 1794057615.970612,
+      "kind": "model_request",
+      "detail": {
+        "call": 13,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 38,
+      "created_at": 1794057633.5653365,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "demands",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 12,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 39,
+      "created_at": 1794057633.6121216,
+      "kind": "model_request",
+      "detail": {
+        "call": 14,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 40,
+      "created_at": 1794057651.2195935,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "rights",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 13,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 41,
+      "created_at": 1794057651.2679172,
+      "kind": "model_request",
+      "detail": {
+        "call": 15,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 42,
+      "created_at": 1794057668.8970282,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "object",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 14,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 43,
+      "created_at": 1794057668.9342737,
+      "kind": "model_request",
+      "detail": {
+        "call": 16,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 44,
+      "created_at": 1794057686.4799066,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "demands",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 15,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 45,
+      "created_at": 1794057686.5213075,
+      "kind": "model_request",
+      "detail": {
+        "call": 17,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 46,
+      "created_at": 1794057704.1412802,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "object",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 16,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 47,
+      "created_at": 1794057704.1845844,
+      "kind": "model_request",
+      "detail": {
+        "call": 18,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 48,
+      "created_at": 1794057722.2165666,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "demands",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 17,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 49,
+      "created_at": 1794057722.2531662,
+      "kind": "model_request",
+      "detail": {
+        "call": 19,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 50,
+      "created_at": 1794057739.7601166,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "rights",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 18,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 51,
+      "created_at": 1794057739.9183664,
+      "kind": "model_request",
+      "detail": {
+        "call": 20,
+        "message": "Запрос к языковой модели"
+      }
+    },
+    {
+      "id": 52,
+      "created_at": 1794057757.440951,
+      "kind": "tool",
+      "detail": {
+        "facts_count": 0,
+        "field": "event_date",
+        "message": "Инструмент выполнен",
+        "ok": true,
+        "reason": "Модель выбрала следующий инструмент",
+        "source_id": null,
+        "step": 19,
+        "tool": "ask_clarification"
+      }
+    },
+    {
+      "id": 53,
+      "created_at": 1794057757.4856074,
+      "kind": "failed",
+      "detail": {
+        "message": "Достигнут лимит запросов модели"
+      }
+    }
+  ]
+}

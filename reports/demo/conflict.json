@@ -1,0 +1,275 @@
+{
+  "synthetic": true,
+  "mode": "demo",
+  "input": {
+    "title": "Кто добавил фотографию?",
+    "narrative": "Учебная ситуация. Продавец отрицает самостоятельную загрузку.\nПлощадка: Wildberries\nОбъект: фотография товара\nПрава: истец ссылается на авторство; доказательства еще не проверены\nРазмещение: автоматическое добавление площадкой\nТребования: компенсация за использование фотографии\nДата события: 15.10.2026 — дата фиксации",
+    "role": "respondent",
+    "mode": "demo",
+    "documents": [
+      {
+        "name": "Учебный ответ поддержки.txt",
+        "text": "Синтетический ответ, созданный для демонстрации противоречия.\nРазмещение: самостоятельная загрузка продавцом\nСведения о владельце учетной записи требуют дополнительной проверки."
+      }
+    ],
+    "answers": {},
+    "consent_to_yandex": false
+  },
+  "result": {
+    "schema_version": "1.0",
+    "agent": "intake",
+    "mode": "demo",
+    "model": null,
+    "title": "Кто добавил фотографию?",
+    "role": "respondent",
+    "facts": [
+      {
+        "field": "platform",
+        "value": "Wildberries",
+        "source_id": "narrative",
+        "quote": "Площадка: Wildberries",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 62
+      },
+      {
+        "field": "object",
+        "value": "фотография товара",
+        "source_id": "narrative",
+        "quote": "Объект: фотография товара",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 84
+      },
+      {
+        "field": "rights",
+        "value": "истец ссылается на авторство; доказательства еще не проверены",
+        "source_id": "narrative",
+        "quote": "Права: истец ссылается на авторство; доказательства еще не проверены",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 110
+      },
+      {
+        "field": "placement",
+        "value": "автоматическое добавление площадкой",
+        "source_id": "narrative",
+        "quote": "Размещение: автоматическое добавление площадкой",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 179
+      },
+      {
+        "field": "demands",
+        "value": "компенсация за использование фотографии",
+        "source_id": "narrative",
+        "quote": "Требования: компенсация за использование фотографии",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 227
+      },
+      {
+        "field": "event_date",
+        "value": "15.10.2026 — дата фиксации",
+        "source_id": "narrative",
+        "quote": "Дата события: 15.10.2026 — дата фиксации",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 279
+      },
+      {
+        "field": "placement",
+        "value": "самостоятельная загрузка продавцом",
+        "source_id": "doc-1",
+        "quote": "Размещение: самостоятельная загрузка продавцом",
+        "status": "document_statement",
+        "source_name": "Учебный ответ поддержки.txt",
+        "quote_start": 62
+      }
+    ],
+    "fields": {
+      "platform": [
+        {
+          "field": "platform",
+          "value": "Wildberries",
+          "source_id": "narrative",
+          "quote": "Площадка: Wildberries",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 62
+        }
+      ],
+      "object": [
+        {
+          "field": "object",
+          "value": "фотография товара",
+          "source_id": "narrative",
+          "quote": "Объект: фотография товара",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 84
+        }
+      ],
+      "rights": [
+        {
+          "field": "rights",
+          "value": "истец ссылается на авторство; доказательства еще не проверены",
+          "source_id": "narrative",
+          "quote": "Права: истец ссылается на авторство; доказательства еще не проверены",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 110
+        }
+      ],
+      "placement": [
+        {
+          "field": "placement",
+          "value": "автоматическое добавление площадкой",
+          "source_id": "narrative",
+          "quote": "Размещение: автоматическое добавление площадкой",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 179
+        },
+        {
+          "field": "placement",
+          "value": "самостоятельная загрузка продавцом",
+          "source_id": "doc-1",
+          "quote": "Размещение: самостоятельная загрузка продавцом",
+          "status": "document_statement",
+          "source_name": "Учебный ответ поддержки.txt",
+          "quote_start": 62
+        }
+      ],
+      "demands": [
+        {
+          "field": "demands",
+          "value": "компенсация за использование фотографии",
+          "source_id": "narrative",
+          "quote": "Требования: компенсация за использование фотографии",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 227
+        }
+      ],
+      "event_date": [
+        {
+          "field": "event_date",
+          "value": "15.10.2026 — дата фиксации",
+          "source_id": "narrative",
+          "quote": "Дата события: 15.10.2026 — дата фиксации",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 279
+        }
+      ]
+    },
+    "questions": [
+      {
+        "field": "placement",
+        "question": "Уточните поле «Размещение»: в источниках разные сведения. Объясните различие или исправьте исходный текст."
+      }
+    ],
+    "conflicts": [
+      {
+        "field": "placement",
+        "message": "Разные формулировки поля «Размещение»: нужна проверка юриста. Это возможное противоречие, а не установленная ложность источника."
+      }
+    ],
+    "reason": "Доступные источники прочитаны, пробелы отмечены",
+    "steps": 7,
+    "usage": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0
+    },
+    "ready_for_search": false,
+    "limits": [
+      "Это разбор исходных сведений, а не оценка перспектив и не поиск судебных дел.",
+      "Цитата подтверждает наличие слов в источнике, но не достоверность утверждения.",
+      "Документы не прошли независимую юридическую проверку."
+    ],
+    "handoff": {
+      "next_agent": "search_planner",
+      "implemented": false
+    }
+  },
+  "events": [
+    {
+      "kind": "tool",
+      "step": 1,
+      "tool": "list_documents",
+      "reason": "Определить доступные источники",
+      "source_id": null,
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 2,
+      "tool": "read_document",
+      "reason": "Прочитать еще не изученный источник",
+      "source_id": "narrative",
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 3,
+      "tool": "record_facts",
+      "reason": "Сохранить явно указанные сведения",
+      "source_id": null,
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 4,
+      "tool": "read_document",
+      "reason": "Прочитать еще не изученный источник",
+      "source_id": "doc-1",
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 5,
+      "tool": "record_facts",
+      "reason": "Сохранить явно указанные сведения",
+      "source_id": null,
+      "field": null,
+      "facts_count": 7,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 6,
+      "tool": "ask_clarification",
+      "reason": "Сведения расходятся — нужна проверка",
+      "source_id": null,
+      "field": "placement",
+      "facts_count": 7,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "tool",
+      "step": 7,
+      "tool": "finish",
+      "reason": "Завершить разбор в пределах полномочий агента 1",
+      "source_id": null,
+      "field": null,
+      "facts_count": 7,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    }
+  ]
+}

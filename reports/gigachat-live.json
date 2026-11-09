@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "agent": "intake",
+  "mode": "gigachat",
+  "model": null,
+  "title": "Фотографии в карточке конкурента",
+  "role": "claimant",
+  "facts": [
+    {
+      "field": "platform",
+      "value": "Ozon",
+      "source_id": "narrative",
+      "quote": "Площадка: Ozon",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 81
+    },
+    {
+      "field": "object",
+      "value": "фотографии товара и инфографика",
+      "source_id": "narrative",
+      "quote": "Объект: фотографии товара и инфографика",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 96
+    },
+    {
+      "field": "rights",
+      "value": "права по договору с фотографом",
+      "source_id": "narrative",
+      "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 136
+    },
+    {
+      "field": "placement",
+      "value": "самостоятельная загрузка продавцом",
+      "source_id": "narrative",
+      "quote": "Размещение: самостоятельная загрузка продавцом",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 223
+    },
+    {
+      "field": "demands",
+      "value": "удалить изображения и выплатить компенсацию",
+      "source_id": "narrative",
+      "quote": "Требования: удалить изображения и выплатить компенсацию",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 270
+    },
+    {
+      "field": "event_date",
+      "value": "20.10.2026",
+      "source_id": "narrative",
+      "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+      "status": "client_statement",
+      "source_name": "Описание клиента",
+      "quote_start": 326
+    }
+  ],
+  "fields": {
+    "platform": [
+      {
+        "field": "platform",
+        "value": "Ozon",
+        "source_id": "narrative",
+        "quote": "Площадка: Ozon",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 81
+      }
+    ],
+    "object": [
+      {
+        "field": "object",
+        "value": "фотографии товара и инфографика",
+        "source_id": "narrative",
+        "quote": "Объект: фотографии товара и инфографика",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 96
+      }
+    ],
+    "rights": [
+      {
+        "field": "rights",
+        "value": "права по договору с фотографом",
+        "source_id": "narrative",
+        "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 136
+      }
+    ],
+    "placement": [
+      {
+        "field": "placement",
+        "value": "самостоятельная загрузка продавцом",
+        "source_id": "narrative",
+        "quote": "Размещение: самостоятельная загрузка продавцом",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 223
+      }
+    ],
+    "demands": [
+      {
+        "field": "demands",
+        "value": "удалить изображения и выплатить компенсацию",
+        "source_id": "narrative",
+        "quote": "Требования: удалить изображения и выплатить компенсацию",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 270
+      }
+    ],
+    "event_date": [
+      {
+        "field": "event_date",
+        "value": "20.10.2026",
+        "source_id": "narrative",
+        "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 326
+      }
+    ]
+  },
+  "questions": [
+    {
+      "field": "placement",
+      "question": "Как именно был размещен контент на площадке Ozon?"
+    }
+  ],
+  "conflicts": [],
+  "reason": "Разбор завершён",
+  "steps": 8,
+  "usage": {
+    "prompt_tokens": 9798,
+    "completion_tokens": 749
+  },
+  "ready_for_search": false,
+  "limits": [
+    "Это разбор исходных сведений, а не оценка перспектив и не поиск судебных дел.",
+    "Цитата подтверждает наличие слов в источнике, но не достоверность утверждения.",
+    "Документы не прошли независимую юридическую проверку."
+  ],
+  "handoff": {
+    "next_agent": "search_planner",
+    "implemented": false
+  }
+}

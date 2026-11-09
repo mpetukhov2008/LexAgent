@@ -1,0 +1,257 @@
+{
+  "synthetic": true,
+  "date": "2026-11-04",
+  "result": {
+    "schema_version": "1.0",
+    "agent": "intake",
+    "mode": "yandex",
+    "model": "gpt://b1g0ss90urfo46arpqf6/aliceai-llm",
+    "title": "Фотографии в карточке конкурента",
+    "role": "claimant",
+    "facts": [
+      {
+        "field": "platform",
+        "value": "Ozon",
+        "source_id": "narrative",
+        "quote": "Площадка: Ozon",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 81
+      },
+      {
+        "field": "object",
+        "value": "фотографии товара и инфографика",
+        "source_id": "narrative",
+        "quote": "Объект: фотографии товара и инфографика",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 96
+      },
+      {
+        "field": "rights",
+        "value": "права по договору с фотографом (требуется юридическая проверка договора)",
+        "source_id": "narrative",
+        "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 136
+      },
+      {
+        "field": "placement",
+        "value": "самостоятельная загрузка продавцом",
+        "source_id": "narrative",
+        "quote": "Размещение: самостоятельная загрузка продавцом",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 223
+      },
+      {
+        "field": "demands",
+        "value": "удалить изображения и выплатить компенсацию",
+        "source_id": "narrative",
+        "quote": "Требования: удалить изображения и выплатить компенсацию",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 270
+      },
+      {
+        "field": "event_date",
+        "value": "20.10.2026 — обнаружение спорного контента",
+        "source_id": "narrative",
+        "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+        "status": "client_statement",
+        "source_name": "Описание клиента",
+        "quote_start": 326
+      }
+    ],
+    "fields": {
+      "platform": [
+        {
+          "field": "platform",
+          "value": "Ozon",
+          "source_id": "narrative",
+          "quote": "Площадка: Ozon",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 81
+        }
+      ],
+      "object": [
+        {
+          "field": "object",
+          "value": "фотографии товара и инфографика",
+          "source_id": "narrative",
+          "quote": "Объект: фотографии товара и инфографика",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 96
+        }
+      ],
+      "rights": [
+        {
+          "field": "rights",
+          "value": "права по договору с фотографом (требуется юридическая проверка договора)",
+          "source_id": "narrative",
+          "quote": "Права: заявляю права по договору с фотографом; требуется юридическая проверка договора",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 136
+        }
+      ],
+      "placement": [
+        {
+          "field": "placement",
+          "value": "самостоятельная загрузка продавцом",
+          "source_id": "narrative",
+          "quote": "Размещение: самостоятельная загрузка продавцом",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 223
+        }
+      ],
+      "demands": [
+        {
+          "field": "demands",
+          "value": "удалить изображения и выплатить компенсацию",
+          "source_id": "narrative",
+          "quote": "Требования: удалить изображения и выплатить компенсацию",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 270
+        }
+      ],
+      "event_date": [
+        {
+          "field": "event_date",
+          "value": "20.10.2026 — обнаружение спорного контента",
+          "source_id": "narrative",
+          "quote": "Дата события: 20.10.2026 — обнаружение спорного контента",
+          "status": "client_statement",
+          "source_name": "Описание клиента",
+          "quote_start": 326
+        }
+      ]
+    },
+    "questions": [
+      {
+        "field": "placement",
+        "question": "Кто именно разместил контент на карточке конкурента — продавец самостоятельно, оператор, через автозаполнение или иным способом? Требуется уточнение для фиксации факта размещения."
+      }
+    ],
+    "conflicts": [],
+    "reason": "Получены основные сведения от клиента и протокол осмотра, но требуется уточнение способа размещения контента на карточке конкурента для полного установления фактов.",
+    "steps": 6,
+    "usage": {
+      "prompt_tokens": 7476,
+      "completion_tokens": 414
+    },
+    "ready_for_search": false,
+    "limits": [
+      "Это разбор исходных сведений, а не оценка перспектив и не поиск судебных дел.",
+      "Цитата подтверждает наличие слов в источнике, но не достоверность утверждения.",
+      "Документы не прошли независимую юридическую проверку."
+    ],
+    "handoff": {
+      "next_agent": "search_planner",
+      "implemented": false
+    }
+  },
+  "events": [
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 1
+    },
+    {
+      "kind": "tool",
+      "step": 1,
+      "tool": "list_documents",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": null,
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 2
+    },
+    {
+      "kind": "tool",
+      "step": 2,
+      "tool": "read_document",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": "narrative",
+      "field": null,
+      "facts_count": 0,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 3
+    },
+    {
+      "kind": "tool",
+      "step": 3,
+      "tool": "record_facts",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": null,
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 4
+    },
+    {
+      "kind": "tool",
+      "step": 4,
+      "tool": "read_document",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": "doc-1",
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 5
+    },
+    {
+      "kind": "tool",
+      "step": 5,
+      "tool": "ask_clarification",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": null,
+      "field": "placement",
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    },
+    {
+      "kind": "model_request",
+      "message": "Запрос к Alice AI",
+      "call": 6
+    },
+    {
+      "kind": "tool",
+      "step": 6,
+      "tool": "finish",
+      "reason": "Модель выбрала следующий инструмент",
+      "source_id": null,
+      "field": null,
+      "facts_count": 6,
+      "ok": true,
+      "message": "Инструмент выполнен"
+    }
+  ]
+}
