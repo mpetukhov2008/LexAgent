@@ -173,8 +173,11 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
             "parser_configured": bool(settings.parser_api_key),
             "database": "PostgreSQL" if settings.database_url else "SQLite",
             "model": settings.model if settings.yandex_ready else "Alice AI LLM",
-            "implemented_agents": ["intake"],
-            "baseline_agents": ["search", "research", "comparison", "critique", "report"],
+            "implemented_agents": ["intake", "search", "comparison", "report"] +
+                                  (["research"] if research_agent else []) +
+                                  (["critique"] if critic_agent else []),
+            "baseline_agents": ([] if research_agent else ["research"]) +
+                               ([] if critic_agent else ["critique"]),
             "contract_version": "2.0",
             "research_extension": research_agent is not None,
             "critic_extension": critic_agent is not None,

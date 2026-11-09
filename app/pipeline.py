@@ -220,6 +220,11 @@ class SearchPipeline:
         state = saved if saved is not None else {}
         online = payload["mode"] == "gigachat"
         warnings = state.setdefault("warnings", [])
+        if payload["mode"] == "yandex":
+            note = "В режиме Alice AI автоматизирован разбор ситуации. " \
+                   "Для смыслового сравнения практики выберите GigaChat."
+            if note not in warnings:
+                warnings.append(note)
 
         def persist(name, value):
             state[name] = value

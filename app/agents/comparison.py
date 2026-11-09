@@ -26,7 +26,7 @@ class ComparisonAgent:
         self.provider = provider
 
     async def run(self, intake, cases, evidence, emit, feedback=None, request_research=None):
-        by_id = {item["id"]: item for item in evidence}
+        by_id = {item["id"]: item for item in evidence if item.get("text_verified") is True}
         case_ids = {item["id"] for item in cases}
         read, results = set(), {}
         inspected = False
@@ -50,6 +50,8 @@ class ComparisonAgent:
                 research_calls += 1
                 additional = await request_research(args.act_id, args.page, args.question)
                 for item in additional:
+                    if item.get("text_verified") is not True or item["act_id"] not in case_ids:
+                        raise ValueError("Дополнительный материал не прошёл проверку")
                     by_id[item["id"]] = item
                     read.add(item["id"])
                 return {"additional_evidence": additional}
