@@ -16,6 +16,15 @@ from app.db import Store
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def settle_transitions(page):
+    """Capture final colors and geometry while leaving live agent pulses running."""
+    page.evaluate("""async () => {
+        const finite = document.getAnimations().filter(animation =>
+            animation.effect.getComputedTiming().iterations !== Infinity);
+        await Promise.all(finite.map(animation => animation.finished.catch(() => {})));
+    }""")
+
+
 def test_browser_intake_library_search_and_mobile(tmp_path):
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
@@ -72,8 +81,13 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             page.locator("#agent-steps [data-stage='search']").click()
             assert "запросы" in page.locator("#agent-description").inner_text()
             assert page.locator("#active-agent").inner_text() == "Шесть агентов. Одна задача."
+            settle_transitions(page)
             page.screenshot(path=str(ROOT / "reports/ui-home.jpg"), type="jpeg", quality=65)
             page.locator("#theme-toggle").click()
+            settle_transitions(page)
+            assert page.locator("#agent-steps button").first.evaluate(
+                "node => getComputedStyle(node).backgroundColor"
+            ) == "rgb(255, 255, 255)"
             page.screenshot(path=str(ROOT / "reports/ui-light.jpg"), type="jpeg", quality=65)
             page.locator("#theme-toggle").click()
             page.get_by_text(
@@ -161,6 +175,12 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             assert page.locator("#completed-stages").inner_text() == "Завершено этапов: 2 из 6"
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.locator("#research-progress").scroll_into_view_if_needed()
+            page.wait_for_function("""() => {
+                const track = document.getElementById('stage-progress').getBoundingClientRect();
+                const fill = document.getElementById('stage-progress-fill').getBoundingClientRect();
+                return Math.abs(fill.width / track.width - 2 / 6) < 0.01;
+            }""")
+            settle_transitions(page)
             page.screenshot(path=str(ROOT / "reports/ui-processing.jpg"), type="jpeg", quality=70)
             fixture["status"] = "needs_clarification"
             fixture["updated_at"] += 1
