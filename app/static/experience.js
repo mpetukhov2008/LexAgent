@@ -53,7 +53,7 @@
     get_verified_materials: 'Собирает проверенные основания', record_conclusion: 'Формирует вывод со ссылками',
     finish_report: 'Сохраняет исследовательскую записку', request_research: 'Запрашивает дополнительные материалы'
   };
-  let current = null, events = [], inspected = null, lastActive = null, ticker = null;
+  let current = null, events = [], inspected = null, lastActive = null, ticker = null, activityOpenedFor = null;
   function elapsed() {
     if (!current || !['running', 'queued'].includes(current.status)) {$('elapsed-time').textContent = ''; return;}
     const seconds = Math.max(0, Math.floor(Date.now() / 1000 - current.created_at));
@@ -91,7 +91,10 @@
     $('agent-description').textContent = selected ? agentById[selected].description : view.status === 'completed' ? 'Откройте результаты ниже. Цитаты и ограничения доступны в каждой карточке.' : 'Нажмите на этап, чтобы узнать, за что отвечает агент.';
     const meaningful = events.filter(event => eventStage(event) && !['budget', 'checkpoint'].includes(event.kind)).slice(-5);
     $('activity-wrap').hidden = !meaningful.length;
-    if (view.running) $('activity-wrap').open = true;
+    if (view.running && meaningful.length && activityOpenedFor !== current.id) {
+      $('activity-wrap').open = true;
+      activityOpenedFor = current.id;
+    }
     $('activity-feed').replaceChildren();
     for (const event of meaningful.reverse()) {
       const item = el('li'), detail = event.detail || {};

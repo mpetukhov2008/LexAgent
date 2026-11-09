@@ -85,8 +85,9 @@ jobs:
         run: node --test tests/ui_progress.test.cjs
       - name: SQLite API and browser tests
         run: python -m pytest -q -rs --ignore=tests/test_postgres.py --junitxml=reports/ci-windows.xml
-      - name: Bounded synthetic home preview for visual review
-        run: python -c "import base64,pathlib; s=base64.b64encode(pathlib.Path('reports/ui-home.jpg').read_bytes()).decode(); print(chr(10).join('UI_PREVIEW_'+str(i).zfill(6)+':'+s[i:i+4000] for i in range(0,len(s),4000)))"
+      - name: Bounded synthetic screens for visual review
+        if: always()
+        run: python scripts/ui_previews.py
       - name: Synthetic demo
         run: python scripts/demo.py
       - name: Save test results and browser screenshots

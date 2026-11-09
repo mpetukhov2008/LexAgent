@@ -147,7 +147,14 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             page.route("**/api/runs/progress-ui-case/events",
                        lambda route: route.fulfill(json=activity))
             page.goto(base + "/#progress-ui-case")
-            page.get_by_role("heading", name="Исследователь дела", exact=True).wait_for()
+            try:
+                page.get_by_role("heading", name="Исследователь дела", exact=True).wait_for()
+            except Exception as exc:
+                raise AssertionError({
+                    "browser_errors": errors,
+                    "active_agent": page.locator("#active-agent").inner_text(),
+                    "alert": page.locator("#error").inner_text(), "url": page.url,
+                }) from exc
             assert page.locator("#agent-steps [data-stage='research']").get_attribute(
                 "aria-current"
             ) == "step"
