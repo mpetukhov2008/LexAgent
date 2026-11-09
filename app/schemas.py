@@ -41,6 +41,7 @@ class Intake(StrictModel):
     documents: list[Document] = Field(default_factory=list, max_length=6)
     answers: dict[FieldName, str] = Field(default_factory=dict)
     consent_to_yandex: bool = False
+    revision_note: str = Field(default="", max_length=500)
 
     @field_validator("answers")
     @classmethod

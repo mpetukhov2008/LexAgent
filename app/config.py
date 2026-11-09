@@ -26,6 +26,9 @@ class Settings:
     max_steps: int = 40
     max_model_calls: int = 20
     run_timeout: int = 600
+    total_model_calls: int = 40
+    search_queries: int = 3
+    research_acts: int = 5
 
     @property
     def yandex_ready(self):

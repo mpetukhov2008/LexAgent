@@ -11,14 +11,27 @@ from typing import Literal
 from pydantic import Field, ValidationError
 
 from app.agent import AgentError
+from app.agents.comparison import ComparisonAgent
+from app.agents.report import ReportAgent
+from app.contracts import (
+    Evidence,
+    ResearchRequest,
+    ResearchResponse,
+    ReviewRequest,
+    ReviewResult,
+    normalize_evidence,
+    registry,
+)
 from app.gigachat import GigaChatProvider
 from app.schemas import StrictModel
+from app.search_agent import SearchAgent
 from app.sources import ParserClient
 
 
 class SearchPlan(StrictModel):
     query: str = Field(min_length=3, max_length=250)
     rationale: str = Field(min_length=3, max_length=1000)
+    queries: list[str] = Field(default_factory=list, max_length=6)
 
 
 class Quote(StrictModel):
@@ -194,14 +207,17 @@ def baseline_query(intake):
 
 
 class SearchPipeline:
-    def __init__(self, settings, source=None, provider=None, library=None):
+    def __init__(self, settings, source=None, provider=None, library=None,
+                 research_agent=None, critic_agent=None):
         self.settings = settings
         self.source = source or ParserClient(settings)
         self.provider = provider or GigaChatProvider(settings)
         self.library = library
+        self.research_agent = research_agent
+        self.critic_agent = critic_agent
 
     async def run(self, payload, intake, emit, saved=None, checkpoint=None):
-        state = saved or {}
+        state = saved if saved is not None else {}
         online = payload["mode"] == "gigachat"
         warnings = state.setdefault("warnings", [])
 
@@ -212,6 +228,10 @@ class SearchPipeline:
             emit("stage_done", {"stage": name, "message": "Этап сохранён"})
 
         async def phase(name, instruction, context, model, fallback):
+            if (name == "research" and self.research_agent) or (
+                name == "critique" and self.critic_agent
+            ):
+                return fallback
             if name not in state:
                 emit("stage_start", {"stage": name, "message": "Выполняется этап"})
                 value = (
@@ -224,7 +244,7 @@ class SearchPipeline:
 
         plan = await phase(
             "search",
-            "Составь один короткий тематический запрос для судебной практики. "
+            "Составь основной и до 3 дополнительных тематических запросов в queries. "
             "Не включай персональные данные. Используй объект нарушения и площадку.",
             {
                 "fields": {
@@ -236,18 +256,14 @@ class SearchPipeline:
         )
         query = payload.get("search_query") or plan["query"]
         if "cases" not in state:
-            cases = self.library.search(query) if self.library else []
-            coverage = {"source": "local", "local_count": len(cases)}
-            if payload["mode"] != "demo":
-                try:
-                    found, coverage_remote = await self.source.search(query)
-                    coverage.update({"source": "local+ras", **coverage_remote})
-                    numbers = {c["number"] for c in cases}
-                    cases.extend(c for c in found if c["number"] not in numbers)
-                except AgentError as exc:
-                    warnings.append(str(exc))
-                    coverage["remote_failed"] = True
-            cases = cases[:3]
+            search_agent = SearchAgent(
+                self.source, self.library, self.settings.search_queries,
+                self.settings.research_acts,
+            )
+            cases, coverage, source_warnings = await search_agent.run(
+                intake, query, payload["mode"] != "demo", emit, plan.get("queries"),
+            )
+            warnings.extend(w for w in source_warnings if w not in warnings)
             for case in cases:
                 if not case["pages"]:
                     try:
@@ -315,29 +331,39 @@ class SearchPipeline:
             Research,
             {"evidence": []},
         )
-        selected_evidence, unresolved = resolve_evidence(research["evidence"], catalog)
+        if self.research_agent:
+            if "external_research" not in state:
+                external = ResearchResponse.model_validate(await self.research_agent.research(
+                    ResearchRequest(intake=intake["fields"], acts=readable)
+                ))
+                persist("external_research", external.model_dump())
+            external = ResearchResponse.model_validate(state["external_research"])
+            selected_evidence = [e.model_dump() for e in external.evidence]
+            warnings.extend(external.warnings)
+            unresolved = 0
+        else:
+            selected_evidence, unresolved = resolve_evidence(research["evidence"], catalog)
         evidence, rejected = verify_evidence(selected_evidence, readable)
+        evidence, normalized_rejected = normalize_evidence(evidence, readable)
+        rejected += normalized_rejected
         rejected += unresolved
         if rejected:
             warnings.append(f"Отброшены неподтверждённые цитаты: {rejected}")
-        ranking = await phase(
-            "comparison",
-            "Сравни факты клиента с судебными материалами. "
-            "Оцени применимость high/medium/low/unknown. Не оценивай вероятность победы.",
-            {"intake": intake["fields"], "cases": context_cases, "evidence": evidence},
-            Ranking,
-            {
-                "comparisons": [
-                    {
-                        "case_id": c["id"],
-                        "relevance": "unknown",
-                        "similarities": "Найдено текстовое совпадение",
-                        "differences": "Требуется содержательное сравнение моделью или юристом",
-                    }
-                    for c in readable
-                ]
-            },
-        )
+        case_records, judicial_acts = registry(cases)
+        state.update(contract_version="2.0", case_records=case_records, judicial_acts=judicial_acts)
+        if "comparison" not in state:
+            emit("stage_start", {"stage": "comparison", "message": "Сопоставление материалов"})
+            ranking = await ComparisonAgent(self.provider).run(
+                {"fields": intake["fields"], "role": payload.get("role", "unknown")},
+                context_cases, evidence, emit,
+            ) if online else {"comparisons": [{
+                "case_id": c["id"], "relevance": "unknown", "perspective": "unknown",
+                "similarities": "Найдено текстовое совпадение",
+                "differences": "Для юридического сравнения нужны модель и проверка юриста",
+                "findings": [], "warnings": [],
+            } for c in readable]}
+            persist("comparison", ranking)
+        ranking = state["comparison"]
         valid_ids = {c["id"] for c in readable}
         comparisons = [item for item in ranking["comparisons"] if item["case_id"] in valid_ids]
         cited_ids = {item["case_id"] for item in evidence}
@@ -361,30 +387,38 @@ class SearchPipeline:
                 "sufficient": False,
             },
         )
+        if self.critic_agent:
+            from app.contracts import ComparisonResult
+
+            if "external_review" not in state:
+                review = ReviewResult.model_validate(await self.critic_agent.review(ReviewRequest(
+                    intake=intake["fields"],
+                    comparisons=[ComparisonResult.model_validate(c) for c in comparisons],
+                    evidence=[Evidence.model_validate(e) for e in evidence],
+                    coverage=state["coverage"],
+                )))
+                known = {e["id"] for e in evidence}
+                if any(identity not in known for issue in review.issues
+                       for identity in issue.evidence_ids):
+                    raise AgentError("Критик вернул ссылку на неизвестное доказательство")
+                persist("external_review", review.model_dump())
+            review = ReviewResult.model_validate(state["external_review"])
+            critique = review.model_dump()
+            critique["concerns"] = review.concerns + [issue.message for issue in review.issues]
         # Baseline cannot establish completeness or procedural finality.
         critique["sufficient"] = False
-        report = await phase(
-            "report",
-            "Составь короткую исследовательскую записку по представленным материалам. "
-            "Не добавляй новые факты. Не называй номера дел вне контекста. "
-            "Выводы предварительные, проценты победы запрещены.",
-            {
-                "intake": intake["fields"],
-                "cases": [{"id": c["id"], "number": c["number"]} for c in readable],
-                "comparisons": comparisons,
-                "evidence": evidence,
-                "critique": critique,
-            },
-            Report,
-            {
+        if "report" not in state:
+            emit("stage_start", {"stage": "report", "message": "Подготовка записки с источниками"})
+            report = await ReportAgent(self.provider).run(
+                intake["fields"], comparisons, evidence, critique, emit,
+            ) if online and evidence else {
                 "summary": "Локальная подборка готова. Юридическое сопоставление "
-                "в демонстрационном режиме не выполняется.",
-                "next_steps": [
-                    "Изучить полные тексты и историю обжалования",
-                    "Запустить анализ через GigaChat",
-                ],
-            },
-        )
+                           "в демонстрационном режиме не выполняется.",
+                "conclusions": [], "missing_evidence": [],
+                "next_steps": ["Изучить тексты и историю обжалования", "Проверить выводы с юристом"],
+            }
+            persist("report", report)
+        report = state["report"]
         if not evidence:
             report = {
                 "summary": "Акты получены, но подтверждённые фрагменты для сравнения не выбраны. "
@@ -397,8 +431,9 @@ class SearchPipeline:
             evidence=evidence,
             comparisons=comparisons,
             report=report,
+            critique=critique,
             limits=[
-                "Базовая версия этапов 2–6: один запрос, первая страница выдачи, до 3 дел.",
+                "Несколько запросов, объединение и ранжирование; первая страница каждого запроса.",
                 "Модель читает первые 2 и последние 2 страницы длинного акта, "
                 "до 5000 символов на страницу; середина может быть пропущена.",
                 "История обжалования и полнота противоположной практики не проверены.",

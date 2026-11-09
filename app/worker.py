@@ -1,8 +1,10 @@
 import asyncio
 import contextlib
+import time
 import uuid
 
 from app.agent import AgentError, IntakeAgent
+from app.budget import BudgetedProvider
 from app.db import LostLease
 from app.library import Library
 from app.pipeline import SearchPipeline
@@ -23,9 +25,11 @@ class Worker:
         run_id = run["id"]
         pulse = asyncio.create_task(self.pulse(run_id))
         try:
+            started = time.monotonic()
             saved = run["checkpoint"] or {}
             intake_state = saved.get("intake", saved if saved.get("version") == 1 else None)
-            state = {"intake": intake_state, "pipeline": saved.get("pipeline", {})}
+            state = {"intake": intake_state, "pipeline": saved.get("pipeline", {}),
+                     "budget": saved.get("budget", {})}
 
             def save_intake(value, kind, detail):
                 state["intake"] = value
@@ -35,6 +39,11 @@ class Worker:
                 self.store.checkpoint(run_id, self.owner, state, kind, detail)
 
             agent = IntakeAgent(run["payload"], self.settings, intake_state)
+            if run["payload"]["mode"] != "demo":
+                agent.provider = BudgetedProvider(
+                    agent.provider, state["budget"], self.settings.total_model_calls,
+                    lambda: emit("budget", {"message": "Зарезервирован вызов модели"}),
+                )
             result = await asyncio.wait_for(
                 agent.run(save_intake),
                 timeout=self.settings.run_timeout,
@@ -44,6 +53,11 @@ class Worker:
                     result["search_notice"] = "Поиск начнётся после уточнения исходных сведений."
                 else:
                     pipeline = SearchPipeline(self.settings, library=Library(self.store))
+                    if run["payload"]["mode"] == "gigachat":
+                        pipeline.provider = BudgetedProvider(
+                            pipeline.provider, state["budget"], self.settings.total_model_calls,
+                            lambda: emit("budget", {"message": "Зарезервирован вызов модели"}),
+                        )
 
                     def save_pipeline(value):
                         state["pipeline"] = value
@@ -54,7 +68,7 @@ class Worker:
                             pipeline.run(
                                 run["payload"], result, emit, state["pipeline"], save_pipeline
                             ),
-                            timeout=self.settings.run_timeout,
+                            timeout=max(0.01, self.settings.run_timeout - (time.monotonic() - started)),
                         )
                     except (AgentError, asyncio.TimeoutError) as exc:
                         result["search"] = {

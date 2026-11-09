@@ -221,3 +221,25 @@ class Store:
             if not changed:
                 raise Conflict("Повтор доступен только для задания с ошибкой")
             self.event(db, run_id, "retry", {"message": "Повтор по запросу пользователя"})
+
+    def cancel(self, run_id):
+        with self.connect() as db:
+            changed = db.execute(
+                "UPDATE runs SET status='cancelled',owner=NULL,lease_until=NULL,updated_at=? "
+                "WHERE id=? AND status IN ('queued','running')", (time.time(), run_id)
+            ).rowcount
+            if not changed:
+                raise Conflict("Остановить можно только выполняющееся задание или очередь")
+            self.event(db, run_id, "cancelled", {"message": "Остановлено пользователем; "
+                       "выполняющийся сетевой запрос может завершиться, результат не перезапишется"})
+
+    def resume(self, run_id):
+        with self.connect() as db:
+            changed = db.execute(
+                "UPDATE runs SET status='queued',owner=NULL,lease_until=NULL,error=NULL,"
+                "result=NULL,attempts=0,updated_at=? WHERE id=? AND status IN ('failed','cancelled')",
+                (time.time(), run_id),
+            ).rowcount
+            if not changed:
+                raise Conflict("Продолжить можно только остановленное задание или ошибку")
+            self.event(db, run_id, "resumed", {"message": "Продолжение с контрольной точки"})

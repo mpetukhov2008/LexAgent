@@ -2,13 +2,13 @@
 
 import hashlib
 import json
-import re
 import time
 
 from pydantic import Field, field_validator
 
 from app.schemas import StrictModel
 from app.sources import court_url
+from app.search_agent import terms
 
 
 class ActImport(StrictModel):
@@ -79,19 +79,33 @@ class Library:
         return [dict(row) for row in rows]
 
     def search(self, query):
-        terms = list(dict.fromkeys(re.findall(r"[\w-]{3,}", query.casefold())))[:12]
+        tokens = terms(query)
         with self.store.connect() as db:
-            rows = db.execute(
-                "SELECT payload,text_content FROM judicial_acts ORDER BY "
-                "imported_at DESC LIMIT 1000"
-            ).fetchall()
+            if hasattr(self.store, "url"):
+                db.execute("CREATE INDEX IF NOT EXISTS judicial_acts_fts ON judicial_acts "
+                           "USING gin(to_tsvector('russian',text_content))")
+                rows = db.execute(
+                    "SELECT payload,text_content FROM judicial_acts WHERE "
+                    "to_tsvector('russian',text_content) @@ plainto_tsquery('russian',?) "
+                    "ORDER BY ts_rank(to_tsvector('russian',text_content), "
+                    "plainto_tsquery('russian',?)) DESC LIMIT 100", (query, query)
+                ).fetchall()
+                if not rows:
+                    rows = db.execute(
+                        "SELECT payload,text_content FROM judicial_acts "
+                        "ORDER BY imported_at DESC LIMIT 1000"
+                    ).fetchall()
+            else:
+                rows = db.execute(
+                    "SELECT payload,text_content FROM judicial_acts ORDER BY "
+                    "imported_at DESC LIMIT 1000"
+                ).fetchall()
         scored = [
-            (sum(term[:7] in row["text_content"].casefold() for term in terms), row) for row in rows
+            (sum(term in row["text_content"].casefold() for term in tokens), row) for row in rows
         ]
-        result, seen = [], set()
+        result = []
         for score, row in sorted(scored, key=lambda item: item[0], reverse=True):
             case = json.loads(row["payload"])
-            if score and case["number"] not in seen:
+            if score:
                 result.append(case)
-                seen.add(case["number"])
         return result[:10]

@@ -244,6 +244,29 @@ def create_app(settings=None):
         store.retry(run_id)
         return {"id": run_id, "status": "queued"}
 
+    @app.post("/api/runs/{run_id}/revisions", status_code=201)
+    def revise(run_id: str, payload: Intake, response: Response,
+               idempotency_key: str | None = Header(default=None)):
+        check_key(idempotency_key)
+        get_run(run_id)
+        check_mode(payload)
+        child, created = store.create(payload.model_dump(), idempotency_key, parent_id=run_id)
+        response.status_code = 201 if created else 200
+        return {"id": child, "created": created}
+
+    @app.post("/api/runs/{run_id}/cancel")
+    def cancel(run_id: str):
+        get_run(run_id)
+        store.cancel(run_id)
+        return {"id": run_id, "status": "cancelled"}
+
+    @app.post("/api/runs/{run_id}/resume")
+    def resume(run_id: str):
+        run = get_run(run_id)
+        check_mode(Intake.model_validate(run["payload"]))
+        store.resume(run_id)
+        return {"id": run_id, "status": "queued"}
+
     @app.get("/")
     def index():
         return FileResponse(STATIC / "index.html")
