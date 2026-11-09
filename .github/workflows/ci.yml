@@ -55,6 +55,10 @@ jobs:
         run: node --test tests/ui_progress.test.cjs
       - name: Backend and PostgreSQL tests
         run: python -m pytest -q -rs --ignore=tests/test_ui.py --junitxml=reports/ci-postgres.xml
+      - name: Structural critic regression evaluation
+        run: |
+          python scripts/eval_critic.py --split dev --check --out reports/critic-eval-dev.json
+          python scripts/eval_critic.py --split test --check --out reports/critic-eval-test.json
       - name: Synthetic demo
         run: python scripts/demo.py
       - name: Save test results
@@ -62,7 +66,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: postgres-results
-          path: reports/ci-postgres.xml
+          path: |
+            reports/ci-postgres.xml
+            reports/critic-eval-dev.json
+            reports/critic-eval-test.json
           if-no-files-found: ignore
           retention-days: 7
 
@@ -85,6 +92,10 @@ jobs:
         run: node --test tests/ui_progress.test.cjs
       - name: SQLite API and browser tests
         run: python -m pytest -q -rs --ignore=tests/test_postgres.py --junitxml=reports/ci-windows.xml
+      - name: Structural critic regression evaluation
+        run: |
+          python scripts/eval_critic.py --split dev --check --out reports/critic-eval-dev.json
+          python scripts/eval_critic.py --split test --check --out reports/critic-eval-test.json
       - name: Bounded synthetic screens for visual review
         if: always()
         run: python scripts/ui_previews.py
@@ -97,6 +108,8 @@ jobs:
           name: windows-results
           path: |
             reports/ci-windows.xml
+            reports/critic-eval-dev.json
+            reports/critic-eval-test.json
             reports/ui-desktop.png
             reports/ui-mobile.png
             reports/ui-home.jpg

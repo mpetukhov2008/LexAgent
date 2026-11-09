@@ -14,6 +14,7 @@ class Settings:
     folder_id: str = ""
     model_uri: str = ""
     enable_yandex: bool = False
+    enable_rule_critic: bool = False
     database_url: str = field(default="", repr=False)
     gigachat_auth_key: str = field(default="", repr=False)
     gigachat_scope: str = "GIGACHAT_API_PERS"
@@ -55,4 +56,5 @@ class Settings:
             folder_id=os.getenv("YANDEX_FOLDER_ID", "").strip(),
             model_uri=os.getenv("YANDEX_MODEL_URI", "").strip(),
             enable_yandex=os.getenv("ENABLE_YANDEX", "false").lower() == "true",
+            enable_rule_critic=os.getenv("ENABLE_RULE_CRITIC", "false").lower() == "true",
         )

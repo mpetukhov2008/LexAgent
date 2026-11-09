@@ -14,5 +14,6 @@ def load_team_agent(module_name, class_name, settings):
 def team_agents(settings):
     return (
         load_team_agent("app.agents.research", "CaseResearchAgent", settings),
-        load_team_agent("app.agents.critic", "CriticAgent", settings),
+        load_team_agent("app.agents.critic", "CriticAgent", settings)
+        if settings.enable_rule_critic else None,
     )
