@@ -1,0 +1,2 @@
+# Preserve the exact bytes hashed by samples/corpus/manifest.json on Windows and Linux.
+reports/ras-gigachat-verified-live.json text eol=lf
