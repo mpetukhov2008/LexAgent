@@ -4,6 +4,7 @@ import time
 import uuid
 
 from app.agent import AgentError, IntakeAgent
+from app.agents.tool_research import ResearchAgent
 from app.budget import BudgetedProvider
 from app.db import LostLease
 from app.library import Library
@@ -64,6 +65,8 @@ class Worker:
                             pipeline.provider, state["budget"], self.settings.total_model_calls,
                             lambda: emit("budget", {"message": "Зарезервирован вызов модели"}),
                         )
+                        if self.settings.enable_tool_research and self.research_agent is None:
+                            pipeline.research_agent = ResearchAgent(pipeline.provider, emit)
 
                     def save_pipeline(value):
                         state["pipeline"] = value

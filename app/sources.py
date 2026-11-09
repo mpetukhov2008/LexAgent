@@ -104,7 +104,8 @@ class ParserClient:
                 results[name] = {"ok": False, "message": str(exc)}
         return results
 
-    async def case_by_number(self, number):
+    async def get_case_card(self, number):
+        """Fetch the validated upstream card. Failures remain distinct from an empty list."""
         number = number.strip().upper().replace("A", "А")
         if not re.fullmatch(r"А\d{1,3}-\d{1,8}/\d{4}", number):
             raise AgentError("Введите номер арбитражного дела, например А70-7129/2024")
@@ -112,6 +113,11 @@ class ParserClient:
         rows = data.get("Cases")
         if not isinstance(rows, list):
             raise AgentError("КАД вернул некорректную карточку дела")
+        return {"number": number, "rows": rows}
+
+    def list_case_acts(self, card):
+        """Convert a retrieved card into separate acts; the returned history is not complete."""
+        number, rows = card["number"], card["rows"]
         result, seen = [], set()
         for row in rows:
             if not isinstance(row, dict) or row.get("CaseNumber") != number:
@@ -127,7 +133,9 @@ class ParserClient:
                         "id": hashlib.sha256(url.encode()).hexdigest()[:16],
                         "number": number,
                         "court": (instance.get("Court") or {}).get("Name", "Не указан"),
-                        "date": "",
+                        "date": str(file.get("Date") or instance.get("Date") or ""),
+                        "instance": "unknown",
+                        "provenance": "parser_api_kad_unverified",
                         "kind": file.get("Name", "Судебный акт"),
                         "file_url": url,
                         "case_url": "https://kad.arbitr.ru/Card/" + str(row.get("CaseId", "")),
@@ -138,6 +146,10 @@ class ParserClient:
                     }
                 )
         return result[:3]
+
+    async def case_by_number(self, number):
+        """Compatibility wrapper for the original search/API contract."""
+        return self.list_case_acts(await self.get_case_card(number))
 
     async def search(self, query):
         if re.fullmatch(r"[АаAa]\d{1,3}-\d{1,8}/\d{4}", query.strip()):
@@ -177,20 +189,40 @@ class ParserClient:
             "fetched_pages": 1,
         }
 
-    async def read_act(self, case):
-        if not court_url(case["file_url"]):
+    async def download_document(self, act):
+        """Download a registered act's document through the existing bounded/cache path."""
+        if not court_url(act["file_url"]):
             raise AgentError("Недопустимый адрес судебного акта")
-        endpoint = "arbitr_api" if case.get("source") == "kad" else "ras_arbitr_api"
-        data = await self.request(endpoint + "/pdf_download", {"url": case["file_url"]})
+        endpoint = "arbitr_api" if act.get("source") == "kad" else "ras_arbitr_api"
+        data = await self.request(endpoint + "/pdf_download", {"url": act["file_url"]})
         try:
             raw = base64.b64decode(data.get("pdfContent") or "", validate=True)
             if not raw.startswith(b"%PDF") or len(raw) > 10_000_000:
                 raise ValueError()
-            pages = await asyncio.to_thread(extract_pages, raw)
         except (ValueError, TypeError):
             raise AgentError("Источник не вернул пригодный PDF") from None
+        return raw
+
+    async def document_pages(self, raw):
+        try:
+            return await asyncio.to_thread(extract_pages, raw)
+        except (ValueError, TypeError):
+            raise AgentError("Источник не вернул пригодный PDF") from None
+
+    async def read_act(self, case):
+        """Legacy result shape with additive, persisted document metadata on the act."""
+        raw = await self.download_document(case)
+        pages = await self.document_pages(raw)
         if not any(page["text"].strip() for page in pages):
             raise AgentError("В PDF нет извлекаемого текста; требуется OCR")
+        case["document_sha256"] = hashlib.sha256(raw).hexdigest()
+        case["retrieved_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        case["text_origin"] = "pdf_text"
+        case["extraction_quality"] = {
+            "status": "partial" if any(not p["text"].strip() for p in pages) else "text_extracted",
+            "empty_pages": [p["page"] for p in pages if not p["text"].strip()],
+            "quality_assessed": False,
+        }
         return pages
 
 
