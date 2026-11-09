@@ -72,6 +72,16 @@ def normalize(value):
     return re.sub(r"\s+", " ", value.casefold().replace("ё", "е")).strip(" .;:")
 
 
+def canonical_value(field, value):
+    value = normalize(value)
+    if field == "platform":
+        if value in {"ozon", "озон", "ozon.ru", "озон.ру"}:
+            return "ozon"
+        if value in {"wildberries", "вайлдберриз", "wb"}:
+            return "wildberries"
+    return value
+
+
 def unknown(value):
     value = normalize(value)
     return value in {"?", "-"} or bool(
@@ -83,7 +93,7 @@ def conflicts_for(facts):
     conflicts = []
     # Multiple objects / demands / rights grounds can coexist. Dates can refer to different events.
     for key in ("platform", "placement"):
-        values = {normalize(f["value"]) for f in facts if f["field"] == key}
+        values = {canonical_value(key, f["value"]) for f in facts if f["field"] == key}
         if len(values) > 1:
             conflicts.append(
                 {

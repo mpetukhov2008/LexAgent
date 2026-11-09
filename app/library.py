@@ -34,6 +34,9 @@ class Library:
                 id TEXT PRIMARY KEY, number TEXT NOT NULL, payload TEXT NOT NULL,
                 text_content TEXT NOT NULL, imported_at DOUBLE PRECISION NOT NULL
             )""")
+            if hasattr(store, "url"):
+                db.execute("CREATE INDEX IF NOT EXISTS judicial_acts_fts ON judicial_acts "
+                           "USING gin(to_tsvector('russian',text_content))")
 
     def save(self, case):
         text = "\n".join(page["text"] for page in case["pages"])
@@ -82,8 +85,6 @@ class Library:
         tokens = terms(query)
         with self.store.connect() as db:
             if hasattr(self.store, "url"):
-                db.execute("CREATE INDEX IF NOT EXISTS judicial_acts_fts ON judicial_acts "
-                           "USING gin(to_tsvector('russian',text_content))")
                 rows = db.execute(
                     "SELECT payload,text_content FROM judicial_acts WHERE "
                     "to_tsvector('russian',text_content) @@ plainto_tsquery('russian',?) "

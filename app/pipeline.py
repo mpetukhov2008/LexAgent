@@ -351,11 +351,28 @@ class SearchPipeline:
             warnings.append(f"Отброшены неподтверждённые цитаты: {rejected}")
         case_records, judicial_acts = registry(cases)
         state.update(contract_version="2.0", case_records=case_records, judicial_acts=judicial_acts)
+
+        async def additional_research(act_id, page, question):
+            if not self.research_agent:
+                return []
+            result = ResearchResponse.model_validate(await self.research_agent.research(
+                ResearchRequest(
+                    intake=intake["fields"], acts=[c for c in readable if c["id"] == act_id],
+                    request=f"Страница {page}. {question}",
+                )
+            ))
+            added, refused = normalize_evidence(result.evidence, readable)
+            if refused:
+                warnings.append("Дополнительный исследователь вернул неподтверждённые цитаты")
+            known = {e["id"] for e in evidence}
+            evidence.extend(e for e in added if e["id"] not in known)
+            return added
         if "comparison" not in state:
             emit("stage_start", {"stage": "comparison", "message": "Сопоставление материалов"})
             ranking = await ComparisonAgent(self.provider).run(
                 {"fields": intake["fields"], "role": payload.get("role", "unknown")},
                 context_cases, evidence, emit,
+                request_research=additional_research if self.research_agent else None,
             ) if online else {"comparisons": [{
                 "case_id": c["id"], "relevance": "unknown", "perspective": "unknown",
                 "similarities": "Найдено текстовое совпадение",
@@ -414,6 +431,7 @@ class SearchPipeline:
                         {"fields": intake["fields"], "role": payload.get("role", "unknown")},
                         context_cases, evidence, emit,
                         feedback=[issue.model_dump() for issue in review.issues],
+                        request_research=additional_research if self.research_agent else None,
                     )
                     persist("comparison_revision", revised)
                 comparisons = state["comparison_revision"]["comparisons"]

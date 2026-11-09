@@ -88,6 +88,7 @@ function addDocument(name = '', text = '') {
 function loadSample(sample) {
   revisionParent = null;
   $('revision-notice').hidden = true;
+  $('revision-answers').replaceChildren();
   $('title').value = sample.title;
   $('narrative').value = sample.narrative;
   $('role').value = sample.role;
@@ -160,6 +161,12 @@ function render(run) {
     revisionParent = run.id;
     $('revision-notice').hidden = false;
     $('revision-notice').textContent = 'Редактирование сохранённой ситуации. Изменения создадут новую версию; исходный разбор останется в истории.';
+    for (const [field, value] of Object.entries(run.payload.answers || {})) {
+      const label = el('label', 'Предыдущее уточнение: ' + labels[field]);
+      const input = el('textarea'); input.value = value; input.maxLength = 1000;
+      input.dataset.field = field; input.rows = 2; input.className = 'revision-answer';
+      label.append(input); $('revision-answers').append(label);
+    }
     $('mode').value = run.payload.mode;
     $('search-enabled').checked = Boolean(run.payload.search_enabled);
     $('search-query').value = run.payload.search_query || '';
@@ -307,7 +314,8 @@ $('intake-form').onsubmit = async event => {
     search_enabled: $('search-enabled').checked,
     search_query: $('search-query').value,
     revision_note: revisionParent ? 'Исходные сведения отредактированы пользователем' : '',
-    answers: {},
+    answers: Object.fromEntries([...document.querySelectorAll('.revision-answer')]
+      .filter(input => input.value.trim()).map(input => [input.dataset.field, input.value.trim()])),
     documents: [...$('documents').children].map(d => ({
       name: d.querySelector('input').value,
       text: d.querySelector('textarea').value
@@ -345,6 +353,7 @@ $('new-run').onclick = () => {
   revisionParent = null;
   submission = null;
   $('revision-notice').hidden = true;
+  $('revision-answers').replaceChildren();
   location.hash = '';
   $('intake-form').reset();
   $('documents').replaceChildren();

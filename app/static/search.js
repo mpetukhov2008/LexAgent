@@ -17,13 +17,17 @@ function sourceLink(label, value, page) {
   } catch { return null; }
 }
 
-function citation(identity, evidence) {
+function citation(identity, evidence, reveal) {
   const item = evidence.find(e => e.id === identity);
   const button = el('button', item ? 'Источник · с. ' + item.page : 'Источник недоступен', 'citation-link');
   button.type = 'button';
   button.disabled = !item;
   button.onclick = () => {
-    const detail = document.getElementById('evidence-' + identity);
+    let detail = document.getElementById('evidence-' + identity);
+    if (!detail && reveal) {
+      reveal();
+      detail = document.getElementById('evidence-' + identity);
+    }
     if (!detail) return;
     let parent = detail.parentElement;
     while (parent) {
@@ -41,6 +45,7 @@ window.renderSearch = function renderSearch(container, search) {
   const acts = search.cases || [];
   const evidence = (search.evidence || []).map((e, i) => ({...e, id: e.id || 'legacy-' + i}));
   const section = el('section', undefined, 'search-results');
+  let revealEvidence = () => {};
   section.append(el('h2', 'Судебная практика'));
   const coverage = search.coverage || {};
   const localOnly = search.external_search_attempted === false || coverage.source === 'local';
@@ -61,7 +66,7 @@ window.renderSearch = function renderSearch(container, search) {
     for (const conclusion of search.report.conclusions) {
       const item = el('article');
       item.append(el('p', cleanReportText(conclusion.text)));
-      for (const identity of conclusion.evidence_ids || []) item.append(citation(identity, evidence));
+      for (const identity of conclusion.evidence_ids || []) item.append(citation(identity, evidence, () => revealEvidence()));
       report.append(item);
     }
     report.append(el('p', 'Ссылки проверены. Смысловую обоснованность выводов проверяет юрист.', 'hint'));
@@ -121,7 +126,7 @@ window.renderSearch = function renderSearch(container, search) {
           body.append(columns);
           for (const finding of comparison.findings || []) {
             const detail = el('div', undefined, 'finding'); detail.append(el('p', finding.text));
-            for (const identity of finding.evidence_ids || []) detail.append(citation(identity, evidence));
+            for (const identity of finding.evidence_ids || []) detail.append(citation(identity, evidence, () => revealEvidence()));
             body.append(detail);
           }
         }
@@ -147,6 +152,7 @@ window.renderSearch = function renderSearch(container, search) {
     if (!count) cards.append(el('p', 'В этой подборке нет дел по такому фильтру.', 'notice'));
   }
   filter.oninput = drawCards; order.onchange = drawCards; drawCards();
+  revealEvidence = () => {filter.value = ''; drawCards();};
   if (search.critique) {
     section.append(el('h3', 'Проверка и ограничения'));
     for (const concern of search.critique.concerns || []) section.append(el('p', cleanReportText(concern), 'notice warn'));

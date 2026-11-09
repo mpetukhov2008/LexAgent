@@ -100,7 +100,8 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             ).get_attribute("href")
             page.get_by_label("Фильтр судебной практики").fill("несуществующий номер")
             assert page.locator(".case-card").count() == 0
-            page.get_by_label("Фильтр судебной практики").fill("")
+            page.locator(".report-conclusions .citation-link").click()
+            assert page.locator(".case-card").count() == 1
             (ROOT / "reports").mkdir(exist_ok=True)
             page.screenshot(path=str(ROOT / "reports/ui-desktop.png"), full_page=True)
             page.set_viewport_size({"width": 390, "height": 844})

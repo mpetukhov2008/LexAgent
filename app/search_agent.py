@@ -94,15 +94,21 @@ class SearchAgent:
         self.max_queries, self.max_acts = max_queries, max_acts
 
     async def run(self, intake, preferred, online, emit, extra_queries=None):
+        generated = suggested_queries(intake, preferred)
         queries = list(dict.fromkeys(
-            suggested_queries(intake, preferred) + (extra_queries or [])
+            generated[:1] + (extra_queries or []) + generated[1:]
         ))[:self.max_queries]
+        if len(generated) == 1 and re.fullmatch(
+            r"[АаAa]\d{1,3}-\d{1,8}/\d{4}", generated[0]
+        ):
+            queries = generated
         batches, journal, warnings = [], [], []
         remote_failed = False
         remote_ok = 0
         for query in queries:
             entry = {"query": query, "local_count": 0, "remote_count": 0,
-                     "external_attempted": online}
+                     "external_attempted": online,
+                     "reason": "initial" if not journal else "expand_coverage"}
             emit("search_query", {"stage": "search", "message": query})
             if self.library:
                 rows = self.library.search(query)
@@ -123,10 +129,16 @@ class SearchAgent:
             # Do not repeatedly spend calls on rejected credentials or an unavailable source.
             if remote_failed and not remote_ok:
                 break
+            _, progress = fuse_candidates(batches, queries, self.max_acts)
+            if len(journal) >= 2 and progress["candidate_cases"] >= self.max_acts:
+                break
         cases, stats = fuse_candidates(batches, queries, self.max_acts)
         return cases, {
             "source": "local+ras" if online else "local", "queries": journal,
             "external_search_attempted": online, "remote_failed": remote_failed,
             "completed_queries": len(journal), "planned_queries": len(queries),
+            "stop_reason": "source_unavailable" if remote_failed and not remote_ok else (
+                "query_budget_exhausted" if len(journal) == len(queries) else "candidate_limit"
+            ),
             "ranking": "reciprocal_rank_fusion+lexical", **stats,
         }, warnings

@@ -15,18 +15,25 @@ class RecordComparisons(StrictModel):
     comparisons: list[ComparisonResult] = Field(min_length=1, max_length=10)
 
 
+class RequestResearch(StrictModel):
+    act_id: str
+    page: int = Field(ge=1, le=150)
+    question: str = Field(min_length=5, max_length=500)
+
+
 class ComparisonAgent:
     def __init__(self, provider):
         self.provider = provider
 
-    async def run(self, intake, cases, evidence, emit, feedback=None):
+    async def run(self, intake, cases, evidence, emit, feedback=None, request_research=None):
         by_id = {item["id"]: item for item in evidence}
         case_ids = {item["id"] for item in cases}
         read, results = set(), {}
         inspected = False
+        research_calls = 0
 
-        def handle(name, args):
-            nonlocal inspected
+        async def handle(name, args):
+            nonlocal inspected, research_calls
             if name == "inspect_cases":
                 inspected = True
                 return {"client_fields": intake, "acts": cases, "review_issues": feedback or [],
@@ -34,6 +41,18 @@ class ComparisonAgent:
                                             "page": e["page"]} for e in evidence]}
             if not inspected:
                 raise ValueError("Сначала прочитайте карточки")
+            if name == "request_research":
+                if args.act_id not in case_ids or research_calls >= 2:
+                    raise ValueError("Неверный акт или исчерпан лимит дополнительных исследований")
+                if request_research is None:
+                    return {"available": False, "message": "Дополнительный исследователь не "
+                            "подключён. Отметьте недостаточность данных и unknown."}
+                research_calls += 1
+                additional = await request_research(args.act_id, args.page, args.question)
+                for item in additional:
+                    by_id[item["id"]] = item
+                    read.add(item["id"])
+                return {"additional_evidence": additional}
             if name == "read_evidence":
                 if any(identity not in by_id for identity in args.evidence_ids):
                     raise ValueError("Неизвестное доказательство")
@@ -70,7 +89,8 @@ class ComparisonAgent:
 
         return await tool_loop(self.provider,
             "Ты сопоставляешь судебные акты с карточкой клиента. Сначала inspect_cases, "
-            "затем read_evidence, record_comparisons и finish_comparison. Для каждого "
+            "затем read_evidence, record_comparisons и finish_comparison. Если контекст "
+            "неполный, запроси страницу через request_research (не более 2 раз). Для каждого "
             "существенного совпадения/отличия укажи dimension, relation, text и evidence_ids. "
             "Известное о клиенте бери только из client_fields. Довод стороны не является "
             "выводом суда. При недостатке информации ставь unknown. Не считай исход дела "
@@ -78,6 +98,7 @@ class ComparisonAgent:
             "клиента; при неясной стороне выбирай unknown. Не вычисляй проценты выигрыша.",
             {"inspect_cases": (Empty, "Прочитать факты клиента, акты и индекс доказательств"),
              "read_evidence": (ReadEvidence, "Прочитать точные цитаты по ID"),
+             "request_research": (RequestResearch, "Запросить дополнительную страницу"),
              "record_comparisons": (RecordComparisons, "Сохранить сравнения с доказательствами"),
              "finish_comparison": (Empty, "Завершить после обработки всех актов")},
             handle, emit, "comparison")

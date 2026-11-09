@@ -64,6 +64,13 @@ def test_conflicting_sources_survive():
     assert result["questions"][0]["field"] == "placement"
 
 
+def test_platform_spelling_does_not_create_false_conflict():
+    payload = sample()
+    payload["documents"].append({"name": "Учебное уточнение", "text": "Площадка: Озон"})
+    _, result, _ = run_agent(payload)
+    assert result["conflicts"] == []
+
+
 def test_clarifications_complete_missing_without_overwriting_sources():
     payload = sample("missing")
     payload["answers"] = {

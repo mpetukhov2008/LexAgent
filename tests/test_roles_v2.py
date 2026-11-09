@@ -88,3 +88,27 @@ def test_shared_budget_reserves_calls_before_provider():
 
     asyncio.run(run())
     assert state["model_calls"] == 1 and saved == [True]
+
+
+def test_comparison_can_request_additional_research_before_recording():
+    cases, evidence = material()
+    identity = evidence[0]["id"]
+    requested = []
+
+    async def request(act_id, page, question):
+        requested.append((act_id, page))
+        return evidence
+
+    provider = Script([
+        ("inspect_cases", {}),
+        ("request_research", {"act_id": "a", "page": 1, "question": "Проверить размещение"}),
+        ("record_comparisons", {"comparisons": [{"case_id": "a", "findings": [{
+            "dimension": "placement", "relation": "similarity", "text": "Совпадает размещение",
+            "evidence_ids": [identity],
+        }]}]}), ("finish_comparison", {}),
+    ])
+    result = asyncio.run(ComparisonAgent(provider).run(
+        {}, cases, [], lambda *args: None, request_research=request,
+    ))
+    assert requested == [("a", 1)]
+    assert result["comparisons"][0]["findings"][0]["evidence_ids"] == [identity]

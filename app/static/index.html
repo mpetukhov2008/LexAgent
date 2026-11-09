@@ -44,6 +44,7 @@
         <div class="samples"><span>Начать с примера</span><div><button data-sample="complete" type="button">Полные сведения</button><button data-sample="missing" type="button">Пробелы</button><button data-sample="conflict" type="button">Противоречие</button></div></div>
         <form id="intake-form">
           <p id="revision-notice" class="notice" hidden></p>
+          <div id="revision-answers"></div>
           <label for="title">Название исследования</label><input id="title" required minlength="3" maxlength="160" placeholder="Например, копирование фотографий на Ozon">
           <div class="form-row"><div><label for="role">Сторона клиента</label><select id="role"><option value="unknown">Пока не определена</option><option value="claimant">Предъявляет требования</option><option value="respondent">Получил претензию или иск</option></select></div><div><label for="mode">Обработка</label><select id="mode"><option value="demo">Локальная демонстрация</option><option value="gigachat">GigaChat</option><option value="yandex">Alice AI · Yandex</option></select></div></div>
           <p id="mode-note" class="mode-note"></p>
