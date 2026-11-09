@@ -81,6 +81,8 @@ jobs:
         run: python -m ruff check app tests scripts
       - name: SQLite API and browser tests
         run: python -m pytest -q -rs --ignore=tests/test_postgres.py --junitxml=reports/ci-windows.xml
+      - name: Bounded synthetic home preview for visual review
+        run: python -c "import base64,pathlib; s=base64.b64encode(pathlib.Path('reports/ui-home.jpg').read_bytes()).decode(); print(chr(10).join('UI_PREVIEW_'+str(i).zfill(6)+':'+s[i:i+4000] for i in range(0,len(s),4000)))"
       - name: Synthetic demo
         run: python scripts/demo.py
       - name: Save test results and browser screenshots
@@ -92,5 +94,6 @@ jobs:
             reports/ci-windows.xml
             reports/ui-desktop.png
             reports/ui-mobile.png
+            reports/ui-home.jpg
           if-no-files-found: ignore
           retention-days: 7

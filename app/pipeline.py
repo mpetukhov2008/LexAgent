@@ -405,6 +405,42 @@ class SearchPipeline:
             review = ReviewResult.model_validate(state["external_review"])
             critique = review.model_dump()
             critique["concerns"] = review.concerns + [issue.message for issue in review.issues]
+            if review.verdict == "revise" and online:
+                if "comparison_revision" not in state:
+                    emit("revision_requested", {
+                        "stage": "comparison", "message": "Критик запросил один цикл исправления",
+                    })
+                    revised = await ComparisonAgent(self.provider).run(
+                        {"fields": intake["fields"], "role": payload.get("role", "unknown")},
+                        context_cases, evidence, emit,
+                        feedback=[issue.model_dump() for issue in review.issues],
+                    )
+                    persist("comparison_revision", revised)
+                comparisons = state["comparison_revision"]["comparisons"]
+                if "external_review_final" not in state:
+                    final_review = ReviewResult.model_validate(await self.critic_agent.review(
+                        ReviewRequest(
+                            intake=intake["fields"],
+                            comparisons=[ComparisonResult.model_validate(c) for c in comparisons],
+                            evidence=[Evidence.model_validate(e) for e in evidence],
+                            coverage=state["coverage"],
+                        )
+                    ))
+                    known = {e["id"] for e in evidence}
+                    if any(identity not in known for issue in final_review.issues
+                           for identity in issue.evidence_ids):
+                        raise AgentError("Критик вернул неизвестное доказательство "
+                                         "после исправления")
+                    persist("external_review_final", final_review.model_dump())
+                review = ReviewResult.model_validate(state["external_review_final"])
+                critique = review.model_dump()
+                critique["concerns"] = review.concerns + [issue.message for issue in review.issues]
+            pending = [issue.model_dump() for issue in review.issues
+                       if issue.target in {"search", "research"}]
+            if pending:
+                state["revision_requests"] = pending
+                warnings.append("Нужно дополнительное исследование источников; "
+                                "автоматическое исправление сравнений не закрывает эти замечания")
         # Baseline cannot establish completeness or procedural finality.
         critique["sufficient"] = False
         if "report" not in state:

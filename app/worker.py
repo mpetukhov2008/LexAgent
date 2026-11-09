@@ -7,14 +7,17 @@ from app.agent import AgentError, IntakeAgent
 from app.budget import BudgetedProvider
 from app.db import LostLease
 from app.library import Library
+from app.materials import Materials
 from app.pipeline import SearchPipeline
 
 
 class Worker:
-    def __init__(self, store, settings):
+    def __init__(self, store, settings, research_agent=None, critic_agent=None):
         self.store = store
         self.settings = settings
         self.owner = str(uuid.uuid4())
+        self.research_agent, self.critic_agent = research_agent, critic_agent
+        self.materials = Materials(store)
 
     async def pulse(self, run_id):
         while True:
@@ -52,7 +55,10 @@ class Worker:
                 if result["questions"]:
                     result["search_notice"] = "Поиск начнётся после уточнения исходных сведений."
                 else:
-                    pipeline = SearchPipeline(self.settings, library=Library(self.store))
+                    pipeline = SearchPipeline(
+                        self.settings, library=Library(self.store),
+                        research_agent=self.research_agent, critic_agent=self.critic_agent,
+                    )
                     if run["payload"]["mode"] == "gigachat":
                         pipeline.provider = BudgetedProvider(
                             pipeline.provider, state["budget"], self.settings.total_model_calls,
@@ -86,6 +92,8 @@ class Worker:
                         "implemented": True,
                         "level": "baseline",
                     }
+                    self.materials.save(run_id, result["search"])
+            result["execution_budget"] = state["budget"]
             self.store.finish(run_id, self.owner, result=result)
         except asyncio.CancelledError:
             self.store.release(run_id, self.owner)

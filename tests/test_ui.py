@@ -1,6 +1,5 @@
 """Browser regression test against a disposable local application instance."""
 
-import base64
 import json
 import os
 import socket
@@ -114,10 +113,6 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             assert page.locator("#consent-wrap").is_visible()
             assert not errors
             browser.close()
-            if os.getenv("CI"):
-                encoded = base64.b64encode((ROOT / "reports/ui-home.jpg").read_bytes()).decode()
-                for index in range(0, len(encoded), 4000):
-                    print(f"UI_PREVIEW_{index:06d}:{encoded[index:index + 4000]}")
     finally:
         process.terminate()
         process.wait(timeout=10)

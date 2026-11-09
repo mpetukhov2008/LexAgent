@@ -19,7 +19,7 @@ class ComparisonAgent:
     def __init__(self, provider):
         self.provider = provider
 
-    async def run(self, intake, cases, evidence, emit):
+    async def run(self, intake, cases, evidence, emit, feedback=None):
         by_id = {item["id"]: item for item in evidence}
         case_ids = {item["id"] for item in cases}
         read, results = set(), {}
@@ -29,7 +29,7 @@ class ComparisonAgent:
             nonlocal inspected
             if name == "inspect_cases":
                 inspected = True
-                return {"client_fields": intake, "acts": cases,
+                return {"client_fields": intake, "acts": cases, "review_issues": feedback or [],
                         "evidence_index": [{"id": e["id"], "act_id": e["act_id"],
                                             "page": e["page"]} for e in evidence]}
             if not inspected:

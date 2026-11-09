@@ -12,8 +12,10 @@ from psycopg import sql
 from psycopg.conninfo import make_conninfo
 
 from app.config import Settings
+from app.library import ActImport, Library
 from app.postgres import PostgresStore
 from tests import test_backend as contract
+from tests.test_materials import exercise_materials
 
 
 @pytest.fixture
@@ -50,3 +52,18 @@ def pg_settings(tmp_path, monkeypatch):
 )
 def test_postgres_backend_contract(pg_settings, check):
     check(pg_settings)
+
+
+def test_postgres_materials_migration(pg_settings):
+    exercise_materials(PostgresStore(pg_settings.database_url))
+
+
+def test_postgres_full_text_library_search(pg_settings):
+    library = Library(PostgresStore(pg_settings.database_url))
+    library.import_act(ActImport(
+        number="СИНТЕТИЧЕСКИЙ ПРИМЕР", court="Учебный источник",
+        url="https://kad.arbitr.ru/Card/synthetic",
+        text="Учебный текст для проверки индекса. Фотографии карточки Ozon. "
+             "Не является судебным актом или юридическим выводом.",
+    ))
+    assert library.search("фотографии Ozon")[0]["number"] == "СИНТЕТИЧЕСКИЙ ПРИМЕР"

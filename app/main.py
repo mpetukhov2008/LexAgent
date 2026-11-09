@@ -14,6 +14,7 @@ from app.agent import AgentError
 from app.config import Settings
 from app.db import Conflict, Store
 from app.gigachat import GigaChatProvider
+from app.integrations import team_agents
 from app.library import ActImport, Library
 from app.postgres import PostgresStore
 from app.schemas import Clarifications, Intake
@@ -55,13 +56,15 @@ class BodyLimit:
         await self.app(scope, replay, send)
 
 
-def create_app(settings=None):
+def create_app(settings=None, research_agent=None, critic_agent=None):
     settings = settings or Settings.from_env()
     store = (
         PostgresStore(settings.database_url) if settings.database_url else Store(settings.database)
     )
     library = Library(store)
-    worker = Worker(store, settings)
+    if research_agent is None and critic_agent is None:
+        research_agent, critic_agent = team_agents(settings)
+    worker = Worker(store, settings, research_agent=research_agent, critic_agent=critic_agent)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -74,7 +77,7 @@ def create_app(settings=None):
                 await task
 
     app = FastAPI(
-        title="Перспектива дела — агент разбора ситуации", version="0.1.0", lifespan=lifespan
+        title="LexAgent — Перспектива дела", version="0.4.0", lifespan=lifespan
     )
     app.state.store = store
     app.state.settings = settings
@@ -172,6 +175,9 @@ def create_app(settings=None):
             "model": settings.model if settings.yandex_ready else "Alice AI LLM",
             "implemented_agents": ["intake"],
             "baseline_agents": ["search", "research", "comparison", "critique", "report"],
+            "contract_version": "2.0",
+            "research_extension": research_agent is not None,
+            "critic_extension": critic_agent is not None,
             "max_documents": 6,
             "demo_notice": "Локальный сценарий по правилам; языковая модель не вызывается",
         }
@@ -212,6 +218,11 @@ def create_app(settings=None):
             {"run": public_run(run), "events": store.events(run_id)},
             headers={"Content-Disposition": f'attachment; filename="intake-{run["id"]}.json"'},
         )
+
+    @app.get("/api/runs/{run_id}/materials")
+    def materials(run_id: str):
+        get_run(run_id)
+        return worker.materials.snapshot(run_id)
 
     @app.post("/api/runs/{run_id}/clarifications", status_code=201)
     def clarify(
