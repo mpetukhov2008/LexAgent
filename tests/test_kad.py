@@ -79,8 +79,8 @@ def test_kad_lookup_download_and_validation(tmp_path, monkeypatch):
             },
         )
 
-    monkeypatch.setattr("app.sources.extract_pages", lambda _: [{"page": 1, "text": "Акт"}])
-    client = ParserClient(Settings(parser_api_key="secret"), httpx.MockTransport(handler), tmp_path)
+    client = ParserClient(Settings(parser_api_key="secret"), httpx.MockTransport(handler), tmp_path,
+                          extractor=lambda _: [{"page": 1, "text": "Акт"}])
 
     async def run():
         cases, coverage = await client.search("A70-7129/2024")

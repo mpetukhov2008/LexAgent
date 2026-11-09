@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.agents.critic import ISSUE_REASONS, CriticAgent, issue_reason  # noqa: E402
-from app.contracts import ReviewRequest  # noqa: E402
+from app.contracts import CONTRACT_VERSION, ReviewRequest  # noqa: E402
 from app.schemas import StrictModel  # noqa: E402
 
 
@@ -114,7 +114,7 @@ async def evaluate(path, split):
                         "expected_verdict": item.gold_labels.expected_verdict,
                         "issues_match": actual == expected, "verdict_match": matched})
     return {
-        "evaluation_version": "critic-structural-v1", "contract_version": "2.0",
+        "evaluation_version": "critic-structural-v1", "contract_version": CONTRACT_VERSION,
         "critic_mode": "deterministic_no_model_calls", "corpus_sha256_lf": fingerprint,
         "split": split, "corpus_size": len(items),
         "synthetic_cases": sum(i.synthetic for i in items),

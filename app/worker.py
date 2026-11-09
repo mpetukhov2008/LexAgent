@@ -4,6 +4,7 @@ import time
 import uuid
 
 from app.agent import AgentError, IntakeAgent
+from app.agents.semantic_critic import SemanticCritic
 from app.agents.tool_research import ResearchAgent
 from app.budget import BudgetedProvider
 from app.db import LostLease
@@ -67,6 +68,13 @@ class Worker:
                         )
                         if self.settings.enable_tool_research and self.research_agent is None:
                             pipeline.research_agent = ResearchAgent(pipeline.provider, emit)
+                        if self.settings.enable_semantic_critic and self.critic_agent is None:
+                            pipeline.critic_agent = SemanticCritic(pipeline.provider, emit)
+                    if hasattr(getattr(pipeline, "source", None), "set_budget"):
+                        pipeline.source.set_budget(
+                            state["budget"], lambda: emit("budget", {
+                                "message": "Зарезервирован запрос к судебному источнику"}),
+                        )
 
                     def save_pipeline(value):
                         state["pipeline"] = value

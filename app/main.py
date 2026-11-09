@@ -13,6 +13,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.agent import AgentError
 from app.config import Settings
 from app.db import Conflict, Store
+from app.documents import OriginalStore
 from app.gigachat import GigaChatProvider
 from app.integrations import team_agents
 from app.library import ActImport, Library
@@ -77,7 +78,7 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
                 await task
 
     app = FastAPI(
-        title="LexAgent — Перспектива дела", version="0.4.0", lifespan=lifespan
+        title="LexAgent — Перспектива дела", version="0.5.0", lifespan=lifespan
     )
     app.state.store = store
     app.state.settings = settings
@@ -288,6 +289,27 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
     @app.get("/api/library")
     def list_acts():
         return library.recent()
+
+    @app.get("/api/documents/{digest}/original")
+    def original_document(digest: str):
+        try:
+            target = OriginalStore(settings.document_dir).get(digest)
+        except AgentError as exc:
+            raise HTTPException(404, str(exc)) from None
+        return FileResponse(target, media_type="application/pdf", headers={
+            "Content-Disposition": f'inline; filename="{digest}.pdf"',
+            "Content-Security-Policy": "sandbox; default-src 'none'",
+        })
+
+    @app.get("/api/connections/ocr")
+    async def ocr_status():
+        from app.pdf_worker import ocr_ready
+
+        ready = await asyncio.to_thread(ocr_ready, settings.tesseract_cmd, settings.ocr_languages)
+        return {"ok": ready, "enabled": settings.enable_ocr,
+                "languages": settings.ocr_languages,
+                "message": "OCR доступен; результат требует сверки" if ready else
+                "Установите Tesseract и языки rus/eng; оригиналы сохраняются и без OCR"}
 
     @app.post("/api/connections/gigachat/check")
     async def check_gigachat():

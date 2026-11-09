@@ -65,7 +65,7 @@ def test_instance_date_is_not_used_as_document_date(tmp_path):
     assert acts[0]["date"] == ""
 
 
-@pytest.mark.parametrize("pages", [None, "invalid", [None], ["invalid"],
+@pytest.mark.parametrize("pages", [None, {}, "invalid", [None], ["invalid"],
                                     [{"page": True, "text": "Текст"}],
                                     [{"page": 1, "text": None}]])
 def test_malformed_research_pages_fail_with_controlled_error(pages):
@@ -88,7 +88,8 @@ def test_source_failure_is_not_empty_results_and_does_not_leak_key(failure, tmp_
         return httpx.Response(int(failure), json={"error_code": "40301" if failure == "403"
                                                 else "unknown", "body": "private-key"})
 
-    client = ParserClient(Settings(parser_api_key="private-key"), httpx.MockTransport(handler),
+    client = ParserClient(Settings(parser_api_key="private-key", source_attempts=1),
+                          httpx.MockTransport(handler),
                           tmp_path)
     with pytest.raises(AgentError) as exc:
         asyncio.run(client.case_by_number("А70-1/2026"))
@@ -110,8 +111,8 @@ def test_partial_and_truncated_text_is_not_marked_complete(tmp_path, monkeypatch
     client = ParserClient(Settings(parser_api_key="dummy"), httpx.MockTransport(
         lambda r: httpx.Response(200, json={"done": 1, "pdfContent":
                                           base64.b64encode(b"%PDF-test").decode()})), tmp_path)
-    monkeypatch.setattr("app.sources.extract_pages", lambda raw: [
-        {"page": 1, "text": "x" * 20000}, {"page": 2, "text": ""}])
+    client.extractor = lambda raw: [
+        {"page": 1, "text": "x" * 20000}, {"page": 2, "text": ""}]
     act = {"file_url": "https://kad.arbitr.ru/a"}
     asyncio.run(client.read_act(act))
     quality = act["extraction_quality"]
@@ -143,7 +144,8 @@ def test_source_budget_is_enforced_before_ninth_request(tmp_path):
         return httpx.Response(200, json={"done": 1, "Cases": []})
 
     async def run():
-        client = ParserClient(Settings(parser_api_key="dummy"), httpx.MockTransport(handler),
+        client = ParserClient(Settings(parser_api_key="dummy", source_max_calls=8),
+                              httpx.MockTransport(handler),
                               tmp_path)
         for _ in range(8):
             await client.request("arbitr_api/details_by_number", {}, fresh=True)

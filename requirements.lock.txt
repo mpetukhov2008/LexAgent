@@ -39,6 +39,7 @@ pydantic_core==2.50.2
 pyee==13.0.1
 Pygments==2.21.0
 pypdf==6.21.4
+pypdfium2==5.15.2
 pytest==9.2.0
 python-dotenv==1.2.4
 PyYAML==6.0.3

@@ -42,6 +42,7 @@ jobs:
           --health-retries 5
     env:
       TEST_DATABASE_URL: postgresql://prospects_test:ci-only-password@127.0.0.1:5432/prospects_test
+      REQUIRE_OCR: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,6 +50,8 @@ jobs:
           python-version: '3.10'
       - name: Install exact dependencies
         run: python -m pip install -r requirements.lock.txt
+      - name: Install Russian and English OCR
+        run: sudo apt-get update -qq && sudo apt-get install -y tesseract-ocr tesseract-ocr-rus
       - name: Lint
         run: python -m ruff check app tests scripts
       - name: Event-driven interface states
@@ -59,6 +62,8 @@ jobs:
         run: |
           python scripts/eval_critic.py --split dev --check --out reports/critic-eval-dev.json
           python scripts/eval_critic.py --split test --check --out reports/critic-eval-test.json
+      - name: Provisional retrieval baseline
+        run: python scripts/eval_retrieval.py --allow-draft --out reports/retrieval-eval.json
       - name: Synthetic demo
         run: python scripts/demo.py
       - name: Save test results
@@ -70,6 +75,7 @@ jobs:
             reports/ci-postgres.xml
             reports/critic-eval-dev.json
             reports/critic-eval-test.json
+            reports/retrieval-eval.json
           if-no-files-found: ignore
           retention-days: 7
 
@@ -77,6 +83,8 @@ jobs:
     name: Python 3.10 / Windows / Edge
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      REQUIRE_OCR: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -84,6 +92,8 @@ jobs:
           python-version: '3.10'
       - name: Install exact dependencies
         run: python -m pip install -r requirements.lock.txt
+      - name: Install checked Windows OCR runtime
+        run: ./scripts/setup_ocr.ps1
       - name: Check Edge availability
         run: python -c "from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(channel='msedge', headless=True); print(b.version); b.close(); p.stop()"
       - name: Lint
@@ -96,6 +106,8 @@ jobs:
         run: |
           python scripts/eval_critic.py --split dev --check --out reports/critic-eval-dev.json
           python scripts/eval_critic.py --split test --check --out reports/critic-eval-test.json
+      - name: Provisional retrieval baseline
+        run: python scripts/eval_retrieval.py --allow-draft --out reports/retrieval-eval.json
       - name: Bounded synthetic screens for visual review
         if: always()
         run: python scripts/ui_previews.py
@@ -110,6 +122,7 @@ jobs:
             reports/ci-windows.xml
             reports/critic-eval-dev.json
             reports/critic-eval-test.json
+            reports/retrieval-eval.json
             reports/ui-desktop.png
             reports/ui-mobile.png
             reports/ui-home.jpg

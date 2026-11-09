@@ -34,6 +34,10 @@ class Library:
                 id TEXT PRIMARY KEY, number TEXT NOT NULL, payload TEXT NOT NULL,
                 text_content TEXT NOT NULL, imported_at DOUBLE PRECISION NOT NULL
             )""")
+            db.execute("CREATE TABLE IF NOT EXISTS document_identity ("
+                       "sha256 TEXT PRIMARY KEY, act_id TEXT NOT NULL, number TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS document_aliases ("
+                       "source_act_id TEXT PRIMARY KEY, canonical_act_id TEXT NOT NULL)")
             if hasattr(store, "url"):
                 db.execute("CREATE INDEX IF NOT EXISTS judicial_acts_fts ON judicial_acts "
                            "USING gin(to_tsvector('russian',text_content))")
@@ -41,6 +45,35 @@ class Library:
     def save(self, case):
         text = "\n".join(page["text"] for page in case["pages"])
         with self.store.connect() as db:
+            digest = case.get("document_sha256")
+            if digest:
+                original_id = case.get("source_act_id", case["id"])
+                content_id = "pdf_" + digest[:24]
+                db.execute("INSERT INTO document_identity(sha256,act_id,number) VALUES(?,?,?) "
+                           "ON CONFLICT(sha256) DO NOTHING", (digest, content_id, case["number"]))
+                canonical = db.execute("SELECT act_id,number FROM document_identity WHERE sha256=?",
+                                       (digest,)).fetchone()
+                if canonical["number"].upper().replace("A", "А") != (
+                        case["number"].upper().replace("A", "А")):
+                    from app.agent import AgentError
+
+                    raise AgentError("Один PDF связан с разными номерами дел; нужна проверка")
+                case["source_act_id"] = original_id
+                case["id"] = content_id
+                if canonical["act_id"] != content_id:
+                    db.execute("UPDATE document_identity SET act_id=? WHERE sha256=?",
+                               (content_id, digest))
+                    db.execute("UPDATE document_aliases SET canonical_act_id=? "
+                               "WHERE canonical_act_id=?", (content_id, canonical["act_id"]))
+                old = db.execute("SELECT payload FROM judicial_acts WHERE id=?",
+                                 (original_id,)).fetchone()
+                if old and original_id != content_id and json.loads(old["payload"]).get(
+                        "document_sha256") == digest:
+                    db.execute("DELETE FROM judicial_acts WHERE id=?", (original_id,))
+                db.execute("INSERT INTO document_aliases(source_act_id,canonical_act_id) "
+                           "VALUES(?,?) "
+                           "ON CONFLICT(source_act_id) DO UPDATE SET "
+                           "canonical_act_id=excluded.canonical_act_id", (original_id, case["id"]))
             db.execute(
                 "INSERT INTO judicial_acts(id,number,payload,text_content,imported_at) "
                 "VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
@@ -80,6 +113,15 @@ class Library:
                 "imported_at DESC LIMIT 100"
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def get(self, identity):
+        with self.store.connect() as db:
+            alias = db.execute("SELECT canonical_act_id FROM document_aliases "
+                               "WHERE source_act_id=?",
+                               (identity,)).fetchone()
+            row = db.execute("SELECT payload FROM judicial_acts WHERE id=?",
+                             (alias["canonical_act_id"] if alias else identity,)).fetchone()
+        return json.loads(row["payload"]) if row else None
 
     def search(self, query):
         tokens = terms(query)

@@ -1,7 +1,7 @@
 import asyncio
 
 from app.agent import AgentError
-from app.search_agent import SearchAgent, fuse_candidates, suggested_queries
+from app.search_agent import SearchAgent, counterexample_query, fuse_candidates, suggested_queries
 
 
 def act(identity, text="", number=None):
@@ -51,3 +51,10 @@ def test_failed_source_stops_repeated_calls_and_demo_uses_no_network():
     assert warnings == ["Источник недоступен"]
     asyncio.run(agent.run({}, "", False, lambda *args: None))
     assert source.calls == 1
+
+
+def test_counterexample_search_does_not_forward_client_identifiers_from_model_text():
+    query = counterexample_query({"fields": {"platform": [{"value": "Ozon"}]}},
+                                 "Иванов +79991234567 private@example.test ИНН 1234567890 отказ")
+    assert "Иванов" not in query and "1234567890" not in query and "@" not in query
+    assert query.endswith("отказ") and "Ozon" in query
