@@ -1,0 +1,46 @@
+{
+  "source_report": "reports/ras-gigachat-verified-live.json",
+  "source_report_sha256": "36fa9f0bf6512cbccba6a7a8e99953f9696435680aa5ede7da0be99c48a46a13",
+  "description": "Historical unreviewed candidates, not an expert-labeled dataset.",
+  "acts": [
+    {
+      "act_id": "ea4c93da446ea928",
+      "number": "А41-31683/2026",
+      "court": "АС Московской области",
+      "date": "06.11.2026",
+      "case_url": "https://kad.arbitr.ru/Card/0ab569e5-5d72-4569-94a4-e0511f3bf1da",
+      "file_url": "https://kad.arbitr.ru/Document/Pdf/0ab569e5-5d72-4569-94a4-e0511f3bf1da/574d4f92-895f-4816-a65f-5fb13a49a8e8/А41-31683-2026__20261106.pdf",
+      "page_count": 18,
+      "pages_sha256": "4d3f818f9c7f4d128313d63a3c949de56b490ad6fa09b1a9ce6963b3426c13b9",
+      "pdf_sha256": null,
+      "legal_review": "not_reviewed",
+      "source_status": "historical_report_not_revalidated"
+    },
+    {
+      "act_id": "50d8cb7d2a5a526a",
+      "number": "А70-7129/2024",
+      "court": "АС Тюменской области",
+      "date": "",
+      "case_url": "https://kad.arbitr.ru/Card/92ae0f77-1188-421f-a3c2-70d7e430a67b",
+      "file_url": "https://kad.arbitr.ru/Kad/PdfDocument/92ae0f77-1188-421f-a3c2-70d7e430a67b/b37613eb-e151-4557-9aa2-477050f5313f/A70-7129-2024_20240621_Reshenie.pdf",
+      "page_count": 10,
+      "pages_sha256": "deea8a3d59f9a348b66b1bebd85272ce57880e75f40b77ba52d82b0310f60c0d",
+      "pdf_sha256": null,
+      "legal_review": "not_reviewed",
+      "source_status": "historical_report_not_revalidated"
+    },
+    {
+      "act_id": "eabf52e10302fb19",
+      "number": "А67-5348/2026",
+      "court": "АС Томской области",
+      "date": "06.11.2026",
+      "case_url": "https://kad.arbitr.ru/Card/5d70d2ac-84e7-4a2c-96cd-99f223b3b179",
+      "file_url": "https://kad.arbitr.ru/Document/Pdf/5d70d2ac-84e7-4a2c-96cd-99f223b3b179/9d6ec2ca-c413-44bf-801b-9680180d3190/А67-5348-2026__20261106.pdf",
+      "page_count": 11,
+      "pages_sha256": "e4bf90d1d97387a2686d68a08d45df87fd1f3ec819b8be6d16bd375ee97cf5e4",
+      "pdf_sha256": null,
+      "legal_review": "not_reviewed",
+      "source_status": "historical_report_not_revalidated"
+    }
+  ]
+}
