@@ -12,6 +12,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.agent import AgentError
 from app.config import Settings
+from app.contracts import CONTRACT_VERSION
 from app.db import Conflict, Store
 from app.documents import OriginalStore
 from app.gigachat import GigaChatProvider
@@ -78,7 +79,7 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
                 await task
 
     app = FastAPI(
-        title="LexAgent — Перспектива дела", version="0.5.0", lifespan=lifespan
+        title="Довод — исследование судебной практики", version="0.6.0", lifespan=lifespan
     )
     app.state.store = store
     app.state.settings = settings
@@ -179,7 +180,17 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
                                   (["critique"] if critic_agent else []),
             "baseline_agents": ([] if research_agent else ["research"]) +
                                ([] if critic_agent else ["critique"]),
-            "contract_version": "2.0",
+            "contract_version": CONTRACT_VERSION,
+            "source_integration": "parser_api_kad_ras",
+            "tool_research_enabled": settings.enable_tool_research,
+            "semantic_critic_enabled": settings.enable_semantic_critic,
+            "ocr_enabled": settings.enable_ocr,
+            "originals_retained": True,
+            "limits": {
+                "source_calls": settings.source_max_calls,
+                "research_acts": settings.research_acts,
+                "model_calls": settings.total_model_calls,
+            },
             "research_extension": research_agent is not None,
             "critic_extension": critic_agent is not None,
             "max_documents": 6,
@@ -306,9 +317,11 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
         from app.pdf_worker import ocr_ready
 
         ready = await asyncio.to_thread(ocr_ready, settings.tesseract_cmd, settings.ocr_languages)
-        return {"ok": ready, "enabled": settings.enable_ocr,
+        return {"ok": ready and settings.enable_ocr, "engine_ready": ready,
+                "enabled": settings.enable_ocr,
                 "languages": settings.ocr_languages,
-                "message": "OCR доступен; результат требует сверки" if ready else
+                "message": "OCR выключен; оригиналы PDF сохраняются" if not settings.enable_ocr else
+                "OCR доступен; результат требует сверки" if ready else
                 "Установите Tesseract и языки rus/eng; оригиналы сохраняются и без OCR"}
 
     @app.post("/api/connections/gigachat/check")
@@ -338,7 +351,12 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
         except AgentError as exc:
             raise HTTPException(422, str(exc)) from None
         imported, warnings = [], []
-        for case in cases:
+        if len(cases) > settings.research_acts:
+            warnings.append(
+                f"Загружены первые {settings.research_acts} актов; "
+                "остальные доступны в карточке дела."
+            )
+        for case in cases[:settings.research_acts]:
             try:
                 case["pages"] = await source.read_act(case)
                 library.save(case)

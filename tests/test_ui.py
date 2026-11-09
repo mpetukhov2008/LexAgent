@@ -64,6 +64,13 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             page.goto(base)
             assert page.locator("html").get_attribute("data-theme") == "dark"
             assert page.locator("#welcome-screen").is_visible()
+            page.evaluate("document.fonts.ready")
+            assert page.evaluate("document.fonts.check('16px Manrope')")
+            assert page.evaluate("document.fonts.check('32px Unbounded')")
+            assert page.locator(".welcome-marketplaces img").count() == 2
+            assert page.locator(".welcome-marketplaces img").evaluate_all(
+                "images => images.every(i => i.complete && i.naturalWidth > 0 && i.height <= 20)"
+            )
             assert page.locator(".welcome-brand").inner_text().strip().endswith("ДОВОД")
             assert page.locator(".city-skyline").get_attribute("src").endswith("moscow-city.svg")
             assert page.locator(".welcome-footer .support-link").get_attribute("href") == (
@@ -78,6 +85,13 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             page.locator("#enter-workspace").click()
             assert page.locator("#app-shell").is_visible()
             assert page.locator("#welcome-screen").is_hidden()
+            page.locator("#open-connections").click()
+            assert page.locator("#settings-details").get_attribute("open") is not None
+            assert page.locator(".connection-card").count() == 3
+            assert "Parser API" in page.locator(".connection-card").nth(1).inner_text()
+            assert page.locator(".connection-card").nth(0).get_by_role("button").is_disabled()
+            page.locator("#settings-details").evaluate("e => e.open = false")
+            page.locator(".intro").scroll_into_view_if_needed()
             page.locator("#agent-steps [data-stage='search']").click()
             assert "запросы" in page.locator("#agent-description").inner_text()
             assert page.locator("#active-agent").inner_text() == "Шесть агентов. Одна задача."
