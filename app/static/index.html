@@ -7,7 +7,9 @@
   <meta name="description" content="Рабочее пространство для исследования судебной практики по спорам о контенте маркетплейсов.">
   <title>ДОВОД — судебная практика с опорой на факты</title>
   <script src="/static/theme.js"></script>
+  <link rel="preload" href="/static/fonts/Manrope.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/interface.css">
   <script src="/static/app.js" defer></script>
   <script src="/static/search.js" defer></script>
   <script src="/static/progress.js" defer></script>
@@ -17,10 +19,10 @@
   <section id="welcome-screen" class="welcome-screen" aria-label="Вход в Довод">
     <header class="welcome-header"><a class="welcome-brand" href="#welcome" aria-label="Довод — стартовый экран"><span class="logo-mark" aria-hidden="true">Д<span>·</span></span><strong>ДОВОД</strong></a><button id="welcome-theme-toggle" class="theme-toggle" type="button" aria-label="Включить светлую тему">☀ <span>Светлая тема</span></button></header>
     <div class="welcome-grid">
-      <div class="city-scene"><div class="city-copy"><span class="eyebrow">ПРАКТИКА. АРГУМЕНТЫ. ВАША ПОЗИЦИЯ.</span><h1>У сильного довода<br>есть <em>основание.</em></h1><p>Найдите судебную практику, которая имеет значение.<br>И проверьте каждый вывод по источнику.</p></div><img class="city-skyline" src="/static/moscow-city.svg" alt="Контур небоскрёбов Москва-Сити: башни Федерация, Эволюция и соседние здания"><span class="city-caption">МОСКВА-СИТИ <span>ГОРОД БОЛЬШИХ ИДЕЙ</span></span></div>
+      <div class="city-scene"><div class="city-copy"><span class="eyebrow">ПРАКТИКА. АРГУМЕНТЫ. ВАША ПОЗИЦИЯ.</span><h1>У сильного довода<br>есть <em>основание.</em></h1><p>Найдите судебную практику, которая имеет значение.<br>И проверьте каждый вывод по источнику.</p><div class="marketplaces welcome-marketplaces"><span class="marketplace"><img src="/static/brands/ozon.svg" width="30" height="20" alt="" aria-hidden="true">Ozon</span><span class="marketplace"><img src="/static/brands/wildberries.svg" width="23" height="20" alt="" aria-hidden="true">Wildberries</span></div></div><img class="city-skyline" src="/static/moscow-city.svg" alt="Контур небоскрёбов Москва-Сити: башни Федерация, Эволюция и соседние здания"><span class="city-caption">МОСКВА-СИТИ <span>ГОРОД БОЛЬШИХ ИДЕЙ</span></span></div>
       <section class="welcome-card"><div class="welcome-pill"><span class="online-dot"></span> AI-ассистент для юриста</div><h2>Ваше дело.<br>Шесть точек зрения.</h2><p class="welcome-description">От описания ситуации до подборки судебных актов — с понятным процессом и проверяемыми цитатами.</p><ol class="welcome-steps"><li><span>01</span><div><strong>Опишите ситуацию</strong><p>Своими словами или на учебном примере</p></div></li><li><span>02</span><div><strong>Следите за работой агентов</strong><p>Каждый этап и его результат — перед вами</p></div></li><li><span>03</span><div><strong>Проверьте аргументы</strong><p>От вывода — к цитате и оригиналу акта</p></div></li></ol><button id="enter-workspace" class="primary welcome-enter" type="button">Войти в пространство <span aria-hidden="true">↗</span></button><button id="try-example" class="welcome-example" type="button">Сначала попробовать на примере →</button><p class="welcome-privacy">Локальное пространство без регистрации.<br>Отправка текстов модели — только с вашего согласия.</p></section>
     </div>
-    <footer class="welcome-footer"><div class="mephi-sign"><span class="atom-mark" aria-hidden="true">⚛</span><span>Создано в <strong>МИФИ</strong><small>Сначала думаем. Потом доказываем.</small></span></div><a class="support-link" href="https://t.me/m_petukhov_2008" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> Поддержка в Telegram</a></footer>
+    <footer class="welcome-footer"><div class="mephi-sign"><span class="atom-mark" aria-hidden="true">⚛</span><span><strong>Поколение Степика</strong><span class="team-context"> · МИФИ</span><small>Сначала думаем. Потом доказываем.</small></span></div><a class="support-link" href="https://t.me/m_petukhov_2008" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> Поддержка в Telegram</a></footer>
   </section>
   <div id="app-shell" hidden>
   <a class="skip-link" href="#workspace">К рабочей области</a>
@@ -34,14 +36,14 @@
       <button id="nav-settings" class="nav"><span aria-hidden="true">⚙</span> Подключения</button>
       <div class="history-heading"><span class="side-label">ИСТОРИЯ ИССЛЕДОВАНИЙ</span><span id="history-count">0</span></div>
       <nav id="history" aria-label="История запусков"><p class="history-empty">Здесь появятся ваши исследования</p></nav>
-      <div class="side-footer"><a href="https://t.me/m_petukhov_2008" class="sidebar-support" target="_blank" rel="noopener noreferrer">↗ Техническая поддержка</a><span class="local-dot"></span> Локальное пространство<span class="side-version">ДОВОД · создано в МИФИ</span></div>
+      <div class="side-footer"><a href="https://t.me/m_petukhov_2008" class="sidebar-support" target="_blank" rel="noopener noreferrer">↗ Техническая поддержка</a><span class="local-dot"></span> Локальное пространство<span class="side-version">ДОВОД · Поколение Степика</span></div>
     </div>
   </aside>
   <main>
     <header class="topbar"><div><span class="breadcrumb">Ваше пространство</span><span class="slash">/</span><span>Исследование</span></div><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Включить светлую тему">☀ <span>Светлая тема</span></button></header>
     <section class="intro">
       <div><div class="eyebrow"><span></span> ВАШЕ НОВОЕ ИССЛЕДОВАНИЕ</div><h1>Разберём дело.<br><em>Найдём основания.</em></h1><p>Опишите ситуацию. Агенты соберут материалы,<br class="wide"> сопоставят практику и покажут источники выводов.</p></div>
-      <div class="intro-note"><span class="note-symbol" aria-hidden="true">§</span><strong>Контент маркетплейсов</strong><p>Фотографии, инфографика<br>и тексты карточек товаров</p><span class="tag">Ozon</span><span class="tag">Wildberries</span></div>
+      <div class="intro-note"><span class="note-symbol" aria-hidden="true">§</span><strong>Контент маркетплейсов</strong><p>Фотографии, инфографика<br>и тексты карточек товаров</p><div class="marketplaces"><span class="marketplace"><img src="/static/brands/ozon.svg" width="30" height="20" alt="" aria-hidden="true">Ozon</span><span class="marketplace"><img src="/static/brands/wildberries.svg" width="23" height="20" alt="" aria-hidden="true">Wildberries</span></div></div>
     </section>
     <section id="research-progress" class="orchestrator" aria-label="Процесс исследования">
       <div class="orchestrator-head"><div class="agent-live" role="status" aria-live="polite"><span id="agent-orb" class="agent-orb" aria-hidden="true">✦</span><div><span id="agent-status-label" class="overline">КОМАНДА В ОЖИДАНИИ</span><h2 id="active-agent">Шесть агентов. Одна задача.</h2></div></div><span id="elapsed-time" class="elapsed-time"></span></div>
@@ -51,6 +53,11 @@
       <div class="progress-track" id="stage-progress" role="progressbar" aria-label="Завершённые этапы" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><div id="stage-progress-fill"></div></div>
       <div class="agent-inspector"><p id="agent-description">Нажмите на этап, чтобы узнать, за что отвечает агент.</p><span id="completed-stages">Этапы ещё не запущены</span></div>
       <details id="activity-wrap" class="activity-wrap" hidden><summary>Что происходит сейчас</summary><ol id="activity-feed"></ol></details>
+    </section>
+    <section class="research-tools" aria-label="Возможности исследования">
+      <div><span class="tool-kicker">ИСТОЧНИКИ</span><strong>От дела — к оригиналу</strong><p>КАД и Банк решений · сохранение PDF · OCR</p></div>
+      <div><span class="tool-kicker">ПРОВЕРКА</span><strong>Позиция и контраргументы</strong><p>История инстанций · смысловой критик · цитаты</p></div>
+      <button id="open-connections" class="text-button" type="button">Проверить готовность <span aria-hidden="true">↗</span></button>
     </section>
     <div id="error" role="alert" hidden></div>
     <div class="workspace" id="workspace">
@@ -84,8 +91,8 @@
       </section>
     </div>
     <section class="panel library-panel" id="library-section"><details><summary>Библиотека судебных актов · добавить текст из источника</summary><div class="library-content"><p class="hint">Локальная подборка для повторного поиска. Тексты, добавленные вручную, отмечаются как непроверенные по оригиналу. Разделение страниц — символом разрыва страницы.</p><form id="library-form"><div class="form-row"><div><label for="act-number">Номер дела</label><input id="act-number" required maxlength="100" placeholder="А70-7129/2024"></div><div><label for="act-court">Суд</label><input id="act-court" required maxlength="200" placeholder="Наименование суда"></div></div><label for="act-url">Ссылка КАД / Банк решений</label><input id="act-url" type="url" required placeholder="https://kad.arbitr.ru/…"><label for="act-text">Текст судебного акта</label><textarea id="act-text" required minlength="50" maxlength="100000" rows="6"></textarea><button type="submit" class="secondary">Добавить в библиотеку</button><p id="library-message" role="status"></p></form><div id="library-list"></div></div></details></section>
-    <section class="panel settings-panel" id="settings-section"><details id="settings-details"><summary>Подключения и режим обработки <span>Проверка доступа к источникам</span></summary><div id="connections" class="connections"></div></details></section>
-    <footer class="workspace-footer"><div class="mephi-sign"><span class="atom-mark" aria-hidden="true">⚛</span><span>Создано в <strong>МИФИ</strong><small>Сначала думаем. Потом доказываем.</small></span></div><div class="footer-right"><a class="support-link" href="https://t.me/m_petukhov_2008" target="_blank" rel="noopener noreferrer">↗ Техническая поддержка</a><p>Итоговую правовую оценку делает юрист.</p></div></footer>
+    <section class="panel settings-panel" id="settings-section"><details id="settings-details"><summary>Подключения и режим обработки <span>КАД, GigaChat и распознавание PDF</span></summary><div id="connections" class="connections"></div></details></section>
+    <footer class="workspace-footer"><div class="mephi-sign"><span class="atom-mark" aria-hidden="true">⚛</span><span><strong>Поколение Степика</strong><span class="team-context"> · МИФИ</span><small>Сначала думаем. Потом доказываем.</small></span></div><div class="footer-right"><a class="support-link" href="https://t.me/m_petukhov_2008" target="_blank" rel="noopener noreferrer">↗ Техническая поддержка</a><p>Итоговую правовую оценку делает юрист.</p></div></footer>
   </main>
   </div>
 </body>

@@ -136,3 +136,22 @@ def test_kad_import_api_saves_pages_and_reports_errors(tmp_path, monkeypatch):
         monkeypatch.setattr(ParserClient, "read_act", fail)
         data = client.post("/api/library/kad", params={"number": "А70-7129/2024"}).json()
         assert not data["imported"] and data["warnings"]
+
+
+def test_kad_import_respects_document_limit_and_reports_remaining(tmp_path, monkeypatch):
+    read_ids = []
+
+    async def lookup(self, number):
+        return [{"id": str(i), "number": number, "pages": []} for i in range(4)]
+
+    async def read(self, case):
+        read_ids.append(case["id"])
+        return [{"page": 1, "text": "Учебный текст"}]
+
+    monkeypatch.setattr(ParserClient, "case_by_number", lookup)
+    monkeypatch.setattr(ParserClient, "read_act", read)
+    settings = Settings(database=tmp_path / "db", worker_enabled=False, research_acts=2)
+    with TestClient(create_app(settings)) as client:
+        result = client.post("/api/library/kad", params={"number": "А70-1/2026"}).json()
+    assert read_ids == ["0", "1"]
+    assert len(result["imported"]) == 2 and result["warnings"]

@@ -204,20 +204,70 @@ $('library-form').onsubmit = async event => {
 (async function connections() {
   try {
     const settings = await api('/api/config');
-    for (const label of ['Хранилище: ' + settings.database, 'GigaChat: ' + (settings.gigachat_ready ? 'настроен' : 'не настроен'), 'Судебные источники: ' + (settings.parser_configured ? 'ключ задан' : 'не настроены')]) $('connections').append(el('span', label, 'source-tag'));
-    const check = el('button', 'Проверить авторизацию GigaChat', 'text-button');
-    const message = el('p', 'Наличие ключа не подтверждает действующий доступ.', 'hint'); message.setAttribute('role', 'status');
-    check.onclick = async () => {check.disabled = true; message.textContent = 'Проверяем соединение…'; try {message.textContent = (await api('/api/connections/gigachat/check', {method: 'POST'})).message;} catch (e) {message.textContent = e.message;} finally {check.disabled = false;}};
-    const parser = el('button', 'Проверить КАД и поиск по текстам', 'text-button');
-    const status = el('p', 'Проверка использует два запроса к судебному источнику.', 'hint'); status.setAttribute('role', 'status');
-    parser.onclick = async () => {parser.disabled = true; status.textContent = 'Проверяем доступ…'; try {const r = await api('/api/connections/parser/check', {method: 'POST'}); status.textContent = ['КАД: ' + (r.kad.ok ? 'доступен' : r.kad.message), 'Банк решений: ' + (r.ras.ok ? 'доступен' : r.ras.message)].join('. ');} catch (e) {status.textContent = e.message;} finally {parser.disabled = false;}};
-    $('connections').append(check, message, parser, status);
-    const form = el('form'); const label = el('label', 'Загрузить акты по номеру дела'); label.htmlFor = 'kad-number';
+    const root = $('connections');
+    function card(title, state, description, action, enabled, run) {
+      const box = el('section', undefined, 'connection-card');
+      const badge = el('span', state, 'connection-state');
+      badge.dataset.state = enabled ? 'unchecked' : 'missing';
+      const button = el('button', action, 'secondary'); button.type = 'button';
+      button.disabled = !enabled;
+      const message = el('p', enabled ? 'Доступ ещё не проверен.' : 'Добавьте ключ в локальный .env и перезапустите приложение.', 'connection-message');
+      message.setAttribute('role', 'status');
+      button.onclick = async () => {
+        button.disabled = true; message.textContent = 'Проверяем соединение…';
+        try {
+          const result = await run(); message.textContent = result.message;
+          badge.textContent = result.ok ? 'Проверено: доступен' : 'Проверка не пройдена';
+          badge.dataset.state = result.ok ? 'ready' : 'missing';
+        } catch (error) {message.textContent = error.message; badge.textContent = 'Не удалось проверить'; badge.dataset.state = 'missing';}
+        finally {button.disabled = !enabled;}
+      };
+      box.append(badge, el('h3', title), el('p', description), button, message); root.append(box);
+      return {badge, message, button};
+    }
+    card('GigaChat', settings.gigachat_ready ? 'Ключ задан' : 'Нужен ключ',
+      'Разбор ситуации, исследование, сравнение и смысловая проверка. Тексты отправляются после вашего согласия.',
+      'Проверить авторизацию', settings.gigachat_ready,
+      () => api('/api/connections/gigachat/check', {method: 'POST'}));
+    card('КАД и Банк решений', settings.parser_configured ? 'Ключ задан' : 'Нужен Parser API',
+      'Карточки дел, опубликованные акты и PDF поступают через Parser API. Поиск по текстам — в Банке решений.',
+      'Проверить источники', settings.parser_configured, async () => {
+        const r = await api('/api/connections/parser/check', {method: 'POST'});
+        return {ok: r.kad.ok && r.ras.ok, message: ['КАД: ' + (r.kad.ok ? 'доступен' : r.kad.message), 'Банк решений: ' + (r.ras.ok ? 'доступен' : r.ras.message)].join('. ')};
+      });
+    const ocr = card('Оригиналы PDF и OCR', 'Проверяем на компьютере',
+      'Оригиналы сохраняются в локальном архиве. Сканы распознаются на русском и английском; текст можно сверить по странице PDF.',
+      'Проверить распознавание', true, () => api('/api/connections/ocr'));
+    ocr.message.textContent = 'Проверяем доступность движка…';
+    try {
+      const r = await api('/api/connections/ocr');
+      ocr.badge.textContent = !r.enabled ? 'OCR выключен' : r.ok ? 'OCR доступен' : 'Нужен Tesseract';
+      ocr.badge.dataset.state = r.ok && r.enabled ? 'ready' : 'missing';
+      ocr.message.textContent = r.message;
+    } catch (error) {ocr.badge.textContent = 'Не удалось проверить OCR'; ocr.message.textContent = error.message;}
+    const features = el('div', undefined, 'research-settings');
+    for (const label of [
+      'Хранилище: ' + settings.database,
+      'Исследователь: ' + (settings.tool_research_enabled ? 'включён в GigaChat' : 'базовый режим'),
+      'Смысловой критик: ' + (settings.semantic_critic_enabled ? 'включён в GigaChat' : 'выключен'),
+      'Экспертная разметка: ожидается'
+    ]) features.append(el('span', label, 'source-tag'));
+    root.append(features, el('p', 'Проверка КАД и Банка решений использует два обращения к Parser API. Наличие ключа не подтверждает доступ, а история опубликованных актов не гарантирует юридическую окончательность.', 'connection-note'));
+    const form = el('form', undefined, 'import-kad');
+    const label = el('label', 'Загрузить акты по номеру дела'); label.htmlFor = 'kad-number';
     const input = el('input'); input.id = 'kad-number'; input.placeholder = 'А70-7129/2024'; input.required = true; input.maxLength = 30;
-    const button = el('button', 'Получить акты из КАД', 'secondary'); button.type = 'submit';
-    const note = el('p', 'Загрузка использует внешний API. Получение известного дела не заменяет поиск аналогов.', 'hint'); note.setAttribute('role', 'status');
+    const button = el('button', 'Получить акты из КАД', 'secondary'); button.type = 'submit'; button.disabled = !settings.parser_configured;
+    const note = el('p', settings.parser_configured ? 'Карточка и PDF загружаются через Parser API; оригиналы сохраняются. Получение известного дела не заменяет поиск аналогов.' : 'Для загрузки нужен ключ Parser API. Текст акта можно добавить вручную в форме ниже.', 'hint'); note.setAttribute('role', 'status');
     form.append(label, input, button, note);
-    form.onsubmit = async event => {event.preventDefault(); button.disabled = true; note.textContent = 'Получаем карточку и PDF…'; try {const r = await api('/api/library/kad?number=' + encodeURIComponent(input.value.trim()), {method: 'POST'}); note.textContent = r.message + '. Актов: ' + r.imported.length + '. ' + r.warnings.join('. '); await refreshLibrary();} catch (e) {note.textContent = e.message;} finally {button.disabled = false;}};
+    form.onsubmit = async event => {
+      event.preventDefault(); button.disabled = true; note.textContent = 'Получаем карточку и PDF…';
+      try {
+        const number = input.value.trim().toUpperCase().replace(/^A/, 'А');
+        const r = await api('/api/library/kad?number=' + encodeURIComponent(number), {method: 'POST'});
+        note.textContent = r.message + '. Актов: ' + r.imported.length + '. ' + r.warnings.join('. '); await refreshLibrary();
+      } catch (error) {note.textContent = error.message;}
+      finally {button.disabled = !settings.parser_configured;}
+    };
     $('library-form').before(form); await refreshLibrary();
   } catch (error) { showError(error); }
 })();

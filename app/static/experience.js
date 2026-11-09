@@ -30,6 +30,7 @@
   $('enter-workspace').onclick = () => {enter(); $('title').focus({preventScroll: true});};
   $('try-example').onclick = () => {enter(); document.querySelector('[data-sample="complete"]').click(); $('workspace').scrollIntoView({behavior: 'smooth'});};
   $('back-to-welcome').onclick = welcome;
+  $('open-connections').onclick = () => $('nav-settings').click();
   let entered = false;
   try {entered = sessionStorage.getItem('dovod-entered') === '1';} catch { /* Optional. */ }
   if (location.hash !== '#welcome' && (entered || location.hash.length > 1)) enter();
@@ -51,7 +52,13 @@
     inspect_cases: 'Изучает карточки судебных актов', read_evidence: 'Читает цитаты из источников',
     record_comparisons: 'Сохраняет сравнение обстоятельств', finish_comparison: 'Завершает сопоставление',
     get_verified_materials: 'Собирает проверенные основания', record_conclusion: 'Формирует вывод со ссылками',
-    finish_report: 'Сохраняет исследовательскую записку', request_research: 'Запрашивает дополнительные материалы'
+    finish_report: 'Сохраняет исследовательскую записку', request_research: 'Запрашивает дополнительные материалы',
+    inspect_comparison: 'Проверяет сопоставление с ситуацией клиента',
+    read_act_page: 'Читает страницу судебного акта', verify_quote: 'Сверяет цитату с источником',
+    request_counterexamples: 'Ищет противоположную практику',
+    request_revision: 'Фиксирует замечания к сравнению', finish_review: 'Завершает проверку критика',
+    list_acts: 'Проверяет доступные судебные акты',
+    record_evidence: 'Сохраняет цитаты и обстоятельства', finish_research: 'Завершает исследование актов'
   };
   let current = null, events = [], inspected = null, lastActive = null, ticker = null, activityOpenedFor = null;
   function elapsed() {

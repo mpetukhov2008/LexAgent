@@ -6,3 +6,8 @@ __pycache__/
 .env
 data/
 *.log
+# Browser diagnostics are downloadable CI artifacts, not application assets.
+reports/ui-*.jpg
+reports/ci-*.xml
+reports/critic-eval-*.json
+reports/retrieval-eval.json

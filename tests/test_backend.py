@@ -166,3 +166,18 @@ def test_role_options_are_real_html_options(settings):
         parser = Options()
         parser.feed(client.get("/").text)
         assert {"claimant", "respondent", "unknown"}.issubset(parser.values)
+
+
+def test_public_config_describes_current_research_without_credentials(settings):
+    from app.contracts import CONTRACT_VERSION
+
+    settings.parser_api_key = "sensitive-parser-value"
+    settings.gigachat_auth_key = "sensitive-model-value"
+    with TestClient(create_app(settings)) as client:
+        response = client.get("/api/config")
+        value = response.json()
+        assert value["contract_version"] == CONTRACT_VERSION
+        assert value["source_integration"] == "parser_api_kad_ras"
+        assert value["tool_research_enabled"] and value["semantic_critic_enabled"]
+        assert value["originals_retained"] and value["limits"]["research_acts"] == 8
+        assert "sensitive-" not in response.text

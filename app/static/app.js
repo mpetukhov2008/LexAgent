@@ -34,6 +34,20 @@ function el(tag, text, cls) {
   return node;
 }
 
+// Known local assets only. Model/user text remains textContent, never HTML.
+function appendMarketplaceText(node, value) {
+  const text = String(value || '');
+  const icons = [];
+  if (/ozon|озон/i.test(text)) icons.push(['ozon', 30]);
+  if (/wildberries|вайлдберриз|вилдберриз|(?:^|[^\p{L}\p{N}_])(?:wb|вб)(?:$|[^\p{L}\p{N}_])/iu.test(text)) icons.push(['wildberries', 23]);
+  for (const [name, width] of icons) {
+    const icon = el('img'); icon.src = '/static/brands/' + name + '.svg';
+    icon.alt = ''; icon.width = width; icon.height = 20; icon.className = 'marketplace-icon';
+    icon.setAttribute('aria-hidden', 'true'); node.append(icon);
+  }
+  node.append(document.createTextNode(text));
+}
+
 function showError(error) {
   $('error').textContent = error.message || String(error);
   $('error').hidden = false;
@@ -190,7 +204,10 @@ function render(run) {
     if (!facts.length) section.append(el('div', 'Не установлено по представленным сведениям', 'unknown'));
     for (const fact of facts) {
       const f = el('div', undefined, 'fact');
-      f.append(el('div', fact.value));
+      const factValue = el('div');
+      if (key === 'platform') appendMarketplaceText(factValue, fact.value);
+      else factValue.textContent = fact.value;
+      f.append(factValue);
       f.append(el('span', fact.status === 'client_statement' ? 'Со слов клиента' : 'Указано в документе', 'source-tag'));
       const source = el('details', undefined, 'evidence-detail');
       source.append(el('summary', fact.source_name + ' · показать цитату'), el('blockquote', fact.quote));

@@ -108,9 +108,6 @@ jobs:
           python scripts/eval_critic.py --split test --check --out reports/critic-eval-test.json
       - name: Provisional retrieval baseline
         run: python scripts/eval_retrieval.py --allow-draft --out reports/retrieval-eval.json
-      - name: Bounded synthetic screens for visual review
-        if: always()
-        run: python scripts/ui_previews.py
       - name: Synthetic demo
         run: python scripts/demo.py
       - name: Save test results and browser screenshots
