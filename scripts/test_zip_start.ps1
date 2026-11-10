@@ -23,3 +23,9 @@ if ((Get-FileHash -LiteralPath $taskEnv -Algorithm SHA256).Hash -ne $taskBefore)
     throw 'Repeated startup changed user settings.'
 }
 Write-Host 'ZIP startup, private Python, dependencies, real OCR, Cyrillic path and preserved .env: passed.'
+$env:REQUIRE_OCR = '1'
+Push-Location -LiteralPath $taskExtracted
+try {
+    & '.venv\Scripts\python.exe' -m pytest -q tests/test_research_completion.py -k real_scan_ocr
+    if ($LASTEXITCODE -ne 0) { throw 'Real OCR in the extracted ZIP failed.' }
+} finally { Pop-Location }

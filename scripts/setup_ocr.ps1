@@ -24,5 +24,8 @@ if (-not (Test-Path -LiteralPath $taskLanguage)) {
 if ((Get-FileHash -LiteralPath $taskLanguage -Algorithm SHA256).Hash.ToLower() -ne 'e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225') {
     throw 'Russian OCR model checksum mismatch.'
 }
-& $taskExecutable --list-langs
-if ($LASTEXITCODE -ne 0) { throw 'Tesseract language check failed.' }
+Push-Location -LiteralPath $taskEngine
+try {
+    & $taskExecutable --tessdata-dir tessdata --list-langs
+    if ($LASTEXITCODE -ne 0) { throw 'Tesseract language check failed.' }
+} finally { Pop-Location }
