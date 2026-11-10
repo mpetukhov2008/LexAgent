@@ -1,3 +1,4 @@
+import hashlib
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -5,6 +6,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def runtime_instance_id():
+    return hashlib.sha256(os.path.normcase(str(ROOT.resolve())).encode()).hexdigest()[:20]
 
 
 @dataclass

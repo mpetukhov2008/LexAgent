@@ -75,4 +75,9 @@
   без shell), новых предупреждений нет. requirements.lock.txt не изменён;
   используется ранее проверенный набор из 62 зависимостей без известных уязвимостей.
 
-Итоговые проверки конкретного коммита и слияние фиксируются в PR этой версии.
+GitHub Actions для `51af8c1` завершился успешно: **179 passed** Linux/PostgreSQL,
+**171 passed** Windows/Edge; оба задания проверяли настоящий OCR.
+[Прогон](https://github.com/mpetukhov2008/LexAgent/actions/runs/42705770902).
+[PR №5](https://github.com/mpetukhov2008/LexAgent/pull/5) объединён в main,
+merge `0d5b6ee036e719d933f2b8be2a9f8ac7fe43e900`. Локальная ветка синхронизирована.
+Все предыдущие PR №1–4 также объединены.
