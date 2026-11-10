@@ -35,9 +35,13 @@ def ocr_ready(command="tesseract", languages="rus+eng"):
     executable = tesseract_path(command)
     if not executable or not re.fullmatch(r"[a-z]{3}(?:\+[a-z]{3}){0,3}", languages):
         return False
+    engine = Path(executable).resolve().parent
+    local_data = (engine / "tessdata").is_dir()
     try:
         result = subprocess.run(
-            [executable, "--list-langs"],
+            [executable, *(["--tessdata-dir", "tessdata"] if local_data else []),
+             "--list-langs"],
+            cwd=engine,
             capture_output=True,
             text=True,
             timeout=10,
@@ -52,6 +56,23 @@ def ocr_ready(command="tesseract", languages="rus+eng"):
 
 def recognize(bitmap, executable, languages, timeout):
     with tempfile.TemporaryDirectory(prefix="lexagent-ocr-") as directory:
+        # MinGW's narrow file APIs may not resolve Cyrillic paths on an English Windows.
+        # Use ASCII relative paths from a Unicode-aware process working directory.
+        source_data = Path(executable).resolve().parent / "tessdata"
+        arguments = []
+        if source_data.is_dir():
+            if not re.fullmatch(r"[a-z]{3}(?:\+[a-z]{3}){0,3}", languages):
+                raise ValueError("Invalid OCR languages")
+            target_data = Path(directory) / "tessdata"
+            target_data.mkdir()
+            for language in languages.split("+"):
+                source = source_data / (language + ".traineddata")
+                target_model = target_data / source.name
+                try:
+                    os.link(source, target_model)
+                except OSError:
+                    shutil.copyfile(source, target_model)
+            arguments = ["--tessdata-dir", "tessdata"]
         target = Path(directory) / "page.pgm"
         if bitmap.mode != "L" or bitmap.width * bitmap.height > 12_000_000:
             raise ValueError("Unexpected OCR bitmap")
@@ -61,7 +82,9 @@ def recognize(bitmap, executable, languages, timeout):
                 start = row * bitmap.stride
                 stream.write(bytes(bitmap.buffer[start : start + bitmap.width]))
         result = subprocess.run(
-            [executable, str(target), "stdout", "-l", languages, "--psm", "3", "tsv"],
+            [executable, target.name, "stdout", *arguments,
+             "-l", languages, "--psm", "3", "-c", "tessedit_create_tsv=1"],
+            cwd=directory,
             capture_output=True,
             timeout=timeout,
             env={**os.environ, "OMP_THREAD_LIMIT": "1"},

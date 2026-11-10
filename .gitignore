@@ -11,3 +11,7 @@ reports/ui-*.jpg
 reports/ci-*.xml
 reports/critic-eval-*.json
 reports/retrieval-eval.json
+
+# Generated browser screenshots are CI artifacts.
+reports/ui-desktop.png
+reports/ui-mobile.png

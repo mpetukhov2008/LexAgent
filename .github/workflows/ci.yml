@@ -128,3 +128,13 @@ jobs:
             reports/ui-processing.jpg
           if-no-files-found: ignore
           retention-days: 7
+
+  zip-startup:
+    name: ZIP / Windows / Python bootstrap
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start extracted ZIP without an existing environment
+        shell: powershell
+        run: ./scripts/test_zip_start.ps1

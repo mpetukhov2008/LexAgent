@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.agent import AgentError
-from app.config import Settings
+from app.config import Settings, runtime_instance_id
 from app.contracts import CONTRACT_VERSION
 from app.db import Conflict, Store
 from app.documents import OriginalStore
@@ -79,7 +79,7 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
                 await task
 
     app = FastAPI(
-        title="Довод — исследование судебной практики", version="0.6.0", lifespan=lifespan
+        title="Довод — исследование судебной практики", version="0.6.1", lifespan=lifespan
     )
     app.state.store = store
     app.state.settings = settings
@@ -161,6 +161,8 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
                 "worker": worker_ok,
                 "database": "PostgreSQL" if settings.database_url else "SQLite",
                 "schema_version": 1,
+                "application": "dovod",
+                "instance_id": runtime_instance_id(),
             },
             status_code=200 if worker_ok else 503,
         )
