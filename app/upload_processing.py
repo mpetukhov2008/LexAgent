@@ -5,6 +5,7 @@ import csv
 import io
 import os
 import struct
+from pathlib import Path
 
 from app.agent import AgentError
 from app.pdf_worker import ocr_ready, tesseract_path
@@ -70,8 +71,13 @@ async def extract_image(path, settings):
     ):
         raise AgentError("OCR недоступен. Проверьте Tesseract в разделе «Подключения»")
     executable = tesseract_path(settings.tesseract_cmd)
+    tessdata = Path(executable).resolve().parent / "tessdata"
+    args = [executable, str(path), "stdout", "-l", settings.ocr_languages]
+    if tessdata.is_dir():
+        args.extend(["--tessdata-dir", str(tessdata)])
+    args.append("tsv")
     process = await asyncio.create_subprocess_exec(
-        executable, str(path), "stdout", "-l", settings.ocr_languages, "tsv",
+        *args,
         cwd=str(path.parent), stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.DEVNULL,
         env={**os.environ, "OMP_THREAD_LIMIT": "1"},
