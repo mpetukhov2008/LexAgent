@@ -428,24 +428,71 @@ $('add-document').onclick = () => {
     showError(e);
   }
 };
-$('files').onchange = async event => {
+let uploadingDocuments = false;
+async function addFiles(files) {
+  if (uploadingDocuments) return;
   clearError();
+  uploadingDocuments = true;
+  const progress = $('upload-progress');
+  const submit = $('submit');
+  submit.disabled = true;
+  progress.hidden = false;
   try {
-    for (const file of event.target.files) {
-      if (!file.name.toLowerCase().endsWith('.txt')) throw new Error('Поддерживаются только TXT');
-      if (file.size > 48000) throw new Error('Файл слишком большой');
-      const text = new TextDecoder('utf-8', {
-        fatal: true
-      }).decode(await file.arrayBuffer());
-      if (text.length > 12000) throw new Error('В документе больше 12 000 символов');
-      addDocument(file.name, text);
+    const entries = Array.from(files);
+    if ($('documents').children.length + entries.length > 6) throw new Error('Можно добавить не более 6 документов');
+    for (let i = 0; i < entries.length; i++) {
+      const file = entries[i];
+      progress.textContent = 'Обработка ' + (i + 1) + ' из ' + entries.length + ': ' + file.name;
+      if (/\.txt$/i.test(file.name)) {
+        if (file.size > 48000) throw new Error('TXT превышает допустимый размер');
+        const text = new TextDecoder('utf-8', {fatal: true}).decode(await file.arrayBuffer());
+        if (!text.trim() || text.length > 12000) throw new Error('TXT должен содержать от 1 до 12 000 символов');
+        addDocument(file.name, text);
+        continue;
+      }
+      if (!/\.(pdf|png|jpe?g)$/i.test(file.name)) throw new Error('Поддерживаются PDF, JPG, PNG и TXT');
+      if (!file.size || file.size > 10000000) throw new Error('PDF/изображение должно быть не больше 10 МБ');
+      const response = await fetch('/api/documents/extract', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/octet-stream', 'X-Document-Name': 'document.' + file.name.split('.').pop().toLowerCase()},
+        body: file
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Ошибка распознавания');
+      addDocument(file.name, data.text);
+      const box = $('documents').lastElementChild;
+      const status = el('p', 'Страниц: ' + data.pages + '. ' + (data.ocr_used ? 'Применён OCR. ' : 'Извлечён текст PDF. ') + (data.truncated ? 'Показаны первые 12 000 символов. ' : '') + 'Проверьте и при необходимости исправьте текст.', 'hint');
+      if (data.original_url) {
+        const link = el('a', 'Открыть PDF ↗');
+        link.href = data.original_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        status.append(document.createTextNode(' '), link);
+      }
+      box.append(status);
     }
-  } catch (e) {
-    showError(e);
+    progress.textContent = 'Документы обработаны. Проверьте распознанный текст перед исследованием.';
+  } catch (error) {
+    showError(error);
+    progress.textContent = 'Обработка прервана. Уже добавленные документы сохранены.';
   } finally {
-    event.target.value = '';
+    uploadingDocuments = false;
+    submit.disabled = false;
   }
+}
+$('files').onchange = async event => {
+  const selected = Array.from(event.target.files);
+  event.target.value = '';
+  await addFiles(selected);
 };
+const dropZone = $('upload-zone');
+dropZone.addEventListener('dragover', event => {event.preventDefault(); dropZone.classList.add('drag-over');});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', event => {
+  event.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (event.dataTransfer?.files) void addFiles(event.dataTransfer.files);
+});
 for (const button of document.querySelectorAll('[data-sample]')) button.onclick = async () => {
   clearError();
   try {

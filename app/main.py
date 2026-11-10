@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import json
 import re
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from app.library import ActImport, Library
 from app.postgres import PostgresStore
 from app.schemas import Clarifications, Intake
 from app.sources import ParserClient
+from app.upload_processing import decode_upload, extract_image, validate_upload
 from app.worker import Worker
 
 STATIC = Path(__file__).parent / "static"
@@ -40,8 +42,10 @@ class BodyLimit:
             if message["type"] == "http.disconnect":
                 return
             body.extend(message.get("body", b""))
-            if len(body) > 300_000:
-                return await JSONResponse({"detail": "Запрос превышает 300 КБ"}, status_code=413)(
+            upload = scope.get("path") == "/api/documents/extract"
+            if len(body) > (10_000_000 if upload else 300_000):
+                detail = "Запрос превышает 10 МБ" if upload else "Запрос превышает 300 КБ"
+                return await JSONResponse({"detail": detail}, status_code=413)(
                     scope, receive, send
                 )
             if not message.get("more_body"):
@@ -302,6 +306,36 @@ def create_app(settings=None, research_agent=None, critic_agent=None):
     @app.get("/api/library")
     def list_acts():
         return library.recent()
+
+    @app.post("/api/documents/extract")
+    async def extract_uploaded(request: Request):
+        """Local raw byte upload: no multipart dependency or cloud transmission."""
+        from app.pdf_processing import extract_document
+
+        filename = request.headers.get("x-document-name", "document")
+        if not filename.isascii() or len(filename) > 180:
+            raise HTTPException(422, "Некорректное имя документа")
+        raw = await request.body()
+        try:
+            extension = validate_upload(raw, filename)
+        except AgentError as exc:
+            raise HTTPException(422, str(exc)) from None
+        with tempfile.TemporaryDirectory(prefix="dovod-upload-") as directory:
+            path = Path(directory) / ("document" + extension)
+            path.write_bytes(raw)
+            try:
+                result = await (extract_document(path, settings) if extension == ".pdf"
+                                else extract_image(path, settings))
+            except AgentError as exc:
+                raise HTTPException(422, str(exc)) from None
+        try:
+            outcome = decode_upload(result)
+        except AgentError as exc:
+            raise HTTPException(422, str(exc)) from None
+        if extension == ".pdf":
+            digest = OriginalStore(settings.document_dir).put(raw)
+            outcome["original_url"] = f"/api/documents/{digest}/original"
+        return outcome
 
     @app.get("/api/documents/{digest}/original")
     def original_document(digest: str):
