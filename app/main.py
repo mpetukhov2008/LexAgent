@@ -22,8 +22,8 @@ from app.library import ActImport, Library
 from app.postgres import PostgresStore
 from app.schemas import Clarifications, Intake
 from app.sources import ParserClient
-from app.worker import Worker
 from app.upload_processing import decode_upload, extract_image, validate_upload
+from app.worker import Worker
 
 STATIC = Path(__file__).parent / "static"
 SAMPLES = Path(__file__).parent.parent / "samples"
@@ -42,8 +42,10 @@ class BodyLimit:
             if message["type"] == "http.disconnect":
                 return
             body.extend(message.get("body", b""))
-            if len(body) > (10_000_000 if scope.get('path') == '/api/documents/extract' else 300_000):
-                return await JSONResponse({"detail": "Запрос превышает 300 КБ"}, status_code=413)(
+            upload = scope.get("path") == "/api/documents/extract"
+            if len(body) > (10_000_000 if upload else 300_000):
+                detail = "Запрос превышает 10 МБ" if upload else "Запрос превышает 300 КБ"
+                return await JSONResponse({"detail": detail}, status_code=413)(
                     scope, receive, send
                 )
             if not message.get("more_body"):
