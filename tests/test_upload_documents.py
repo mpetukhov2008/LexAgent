@@ -1,6 +1,5 @@
 """User-owned PDF / image OCR input boundaries and browser-facing contract."""
 
-import asyncio
 import struct
 
 import pytest
