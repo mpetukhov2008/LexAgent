@@ -87,6 +87,11 @@ async def extract_image(path, settings):
         stdout, _ = await asyncio.wait_for(
             process.communicate(), timeout=min(settings.pdf_timeout, settings.ocr_page_timeout)
         )
+    except asyncio.CancelledError:
+        if process.returncode is None:
+            process.kill()
+        await process.wait()
+        raise
     except asyncio.TimeoutError:
         process.kill()
         await process.wait()

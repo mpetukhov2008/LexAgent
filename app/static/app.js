@@ -22,6 +22,21 @@ let config = {},
   lastRendered = "",
   submission = null;
 let revisionParent = null;
+let submittingIntake = false;
+let uploadingDocuments = false;
+let uploadController = null;
+
+function updateSubmitState() {
+  $('submit').disabled = submittingIntake || uploadingDocuments;
+}
+
+function cancelDocumentUpload() {
+  uploadController?.abort();
+  uploadController = null;
+  uploadingDocuments = false;
+  $('upload-progress').hidden = true;
+  updateSubmitState();
+}
 
 function updateCounter() {
   $('narrative-count').textContent = $('narrative').value.length.toLocaleString('ru-RU') + ' / 12 000';
@@ -83,7 +98,7 @@ function addDocument(name = '', text = '') {
   remove.type = 'button';
   remove.onclick = () => box.remove();
   const nameInput = el('input');
-  nameInput.value = name;
+  nameInput.value = name.slice(0, 120);
   nameInput.placeholder = 'Название документа';
   nameInput.maxLength = 120;
   nameInput.required = true;
@@ -100,6 +115,7 @@ function addDocument(name = '', text = '') {
 }
 
 function loadSample(sample) {
+  cancelDocumentUpload();
   revisionParent = null;
   $('revision-notice').hidden = true;
   $('revision-answers').replaceChildren();
@@ -315,7 +331,9 @@ async function selectRun(id) {
 $('intake-form').onsubmit = async event => {
   event.preventDefault();
   clearError();
-  $('submit').disabled = true;
+  if (uploadingDocuments || submittingIntake) return;
+  submittingIntake = true;
+  updateSubmitState();
   const payload = {
     title: $('title').value,
     narrative: $('narrative').value,
@@ -356,10 +374,12 @@ $('intake-form').onsubmit = async event => {
   } catch (e) {
     showError(e);
   } finally {
-    $('submit').disabled = false;
+    submittingIntake = false;
+    updateSubmitState();
   }
 };
 $('new-run').onclick = () => {
+  cancelDocumentUpload();
   clearTimeout(timer);
   currentId = null;
   revisionParent = null;
@@ -428,14 +448,15 @@ $('add-document').onclick = () => {
     showError(e);
   }
 };
-let uploadingDocuments = false;
 async function addFiles(files) {
-  if (uploadingDocuments) return;
+  if (uploadingDocuments || submittingIntake) return;
   clearError();
   uploadingDocuments = true;
+  const controller = new AbortController();
+  uploadController = controller;
+  const isCurrent = () => uploadController === controller && !controller.signal.aborted;
   const progress = $('upload-progress');
-  const submit = $('submit');
-  submit.disabled = true;
+  updateSubmitState();
   progress.hidden = false;
   try {
     const entries = Array.from(files);
@@ -446,6 +467,7 @@ async function addFiles(files) {
       if (/\.txt$/i.test(file.name)) {
         if (file.size > 48000) throw new Error('TXT превышает допустимый размер');
         const text = new TextDecoder('utf-8', {fatal: true}).decode(await file.arrayBuffer());
+        if (!isCurrent()) return;
         if (!text.trim() || text.length > 12000) throw new Error('TXT должен содержать от 1 до 12 000 символов');
         addDocument(file.name, text);
         continue;
@@ -455,9 +477,11 @@ async function addFiles(files) {
       const response = await fetch('/api/documents/extract', {
         method: 'POST',
         headers: {'Content-Type': 'application/octet-stream', 'X-Document-Name': 'document.' + file.name.split('.').pop().toLowerCase()},
-        body: file
+        body: file,
+        signal: controller.signal
       });
       const data = await response.json();
+      if (!isCurrent()) return;
       if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Ошибка распознавания');
       addDocument(file.name, data.text);
       const box = $('documents').lastElementChild;
@@ -473,11 +497,15 @@ async function addFiles(files) {
     }
     progress.textContent = 'Документы обработаны. Проверьте распознанный текст перед исследованием.';
   } catch (error) {
+    if (!isCurrent()) return;
     showError(error);
     progress.textContent = 'Обработка прервана. Уже добавленные документы сохранены.';
   } finally {
-    uploadingDocuments = false;
-    submit.disabled = false;
+    if (uploadController === controller) {
+      uploadController = null;
+      uploadingDocuments = false;
+      updateSubmitState();
+    }
   }
 }
 $('files').onchange = async event => {
