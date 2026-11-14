@@ -1,6 +1,9 @@
 """User-owned PDF / image OCR input boundaries and browser-facing contract."""
 
+import asyncio
 import struct
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -80,3 +83,21 @@ def test_upload_api_pdf_image_and_boundary(tmp_path, monkeypatch):
                                     "Origin": "https://untrusted.example"}).status_code == 403
         assert client.post("/api/documents/extract", content=b"x" * 10_000_001,
                            headers={"X-Document-Name": "document.pdf"}).status_code == 413
+
+
+def test_cancelled_image_ocr_reaps_child(tmp_path, monkeypatch):
+    from app.upload_processing import extract_image
+
+    process = SimpleNamespace(
+        returncode=None, communicate=AsyncMock(side_effect=asyncio.CancelledError),
+        kill=lambda: setattr(process, "returncode", -1), wait=AsyncMock(return_value=-1),
+    )
+    monkeypatch.setattr("app.upload_processing.ocr_ready", lambda *args: True)
+    monkeypatch.setattr("app.upload_processing.tesseract_path", lambda *args: "tesseract")
+    monkeypatch.setattr(
+        "app.upload_processing.asyncio.create_subprocess_exec", AsyncMock(return_value=process)
+    )
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(extract_image(tmp_path / "scan.png", Settings()))
+    assert process.returncode == -1
+    process.wait.assert_awaited_once()

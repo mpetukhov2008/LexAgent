@@ -85,6 +85,33 @@ def test_browser_intake_library_search_and_mobile(tmp_path):
             page.locator("#enter-workspace").click()
             assert page.locator("#app-shell").is_visible()
             assert page.locator("#welcome-screen").is_hidden()
+
+            # A delayed OCR response must never attach to a newly opened situation.
+            pending_uploads = []
+            page.route("**/api/documents/extract", lambda route: pending_uploads.append(route))
+            page.locator("#files").set_input_files({
+                "name": "scan.pdf", "mimeType": "application/pdf", "buffer": b"%PDF-1.7",
+            })
+            page.wait_for_function("uploadingDocuments")
+            page.wait_for_timeout(100)
+            assert pending_uploads
+            assert page.locator("#submit").is_disabled()
+            page.locator("#new-run").click()
+            assert page.locator("#submit").is_enabled()
+            assert page.locator("#upload-progress").is_hidden()
+            for route in pending_uploads:
+                route.fulfill(json={"text": "Old document", "pages": 1, "ocr_used": True})
+            assert page.locator("#documents .document").count() == 0
+            # Names from real files can exceed the input's maxlength.
+            page.locator("#files").set_input_files({
+                "name": "a" * 125 + ".txt", "mimeType": "text/plain",
+                "buffer": "Текст документа".encode(),
+            })
+            page.wait_for_function("!uploadingDocuments")
+            assert len(page.get_by_label("Название документа").input_value()) == 120
+            assert page.get_by_label("Название документа").evaluate("e => e.checkValidity()")
+            page.locator("#new-run").click()
+
             page.locator("#open-connections").click()
             assert page.locator("#settings-details").get_attribute("open") is not None
             assert page.locator(".connection-card").count() == 3
